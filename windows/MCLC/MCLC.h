@@ -1,9 +1,9 @@
 #pragma once
 
-#ifdef CAFFEBINDING_EXPORTS
-#define CAFFE_DLL __declspec(dllexport)
+#ifdef MCLC_EXPORTS
+#define MCLC_DLL __declspec(dllexport)
 #else
-#define CAFFE_DLL __declspec(dllimport)
+#define MCLC_DLL __declspec(dllimport)
 #endif
 
 #include <opencv2\opencv.hpp>
@@ -17,9 +17,9 @@ namespace caffe {
     std::vector<int> size;
     std::string name;
   };
-  class CAFFE_DLL CaffeBinding {
+  class MCLC_DLL MCLC {
   public:
-    CaffeBinding();
+	  MCLC();
     int AddNet(std::string prototxt_path, std::string weights_path, int gpu_id = 0);
     std::unordered_map<std::string, DataBlob> Forward(int net_id);
     std::unordered_map<std::string, DataBlob> Forward(std::vector<cv::Mat>&& input_image, int net_id);
@@ -33,6 +33,6 @@ namespace caffe {
     void SetBlobData(std::string blob_name, std::vector<int> blob_shape, float* data, int net_id);
     DataBlob GetBlobData(std::string blob_name, int net_id);
     void SetDevice(int gpu_id);
-    ~CaffeBinding();
+    ~MCLC();
   };
 }

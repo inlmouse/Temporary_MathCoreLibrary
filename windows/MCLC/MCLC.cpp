@@ -1,4 +1,4 @@
-#include "CaffeBinding.h"
+#include "MCLC.h"
 #include <caffe\caffe.hpp>
 #include <caffe\layers\memory_data_layer.hpp>
 #include <boost/thread.hpp>
@@ -10,11 +10,11 @@ std::vector<Net<float>*> nets_;//no shared_ptr here.
 std::vector<std::shared_ptr<boost::thread_specific_ptr<caffe::Net<float>>>> predictors_;
 std::vector<string> prototxts;
 
-CaffeBinding::CaffeBinding() {
+MCLC::MCLC() {
   FLAGS_minloglevel = google::FATAL;
 }
 
-int CaffeBinding::AddNet(string model_definition, string weights, int gpu_id) {
+int MCLC::AddNet(string model_definition, string weights, int gpu_id) {
   SetDevice(gpu_id);
   auto new_net = new Net<float>(model_definition, Phase::TEST);//boost::make_shared<Net<float> >(model_definition, Phase::TEST);
   new_net->CopyTrainedLayersFrom(weights);
@@ -24,7 +24,7 @@ int CaffeBinding::AddNet(string model_definition, string weights, int gpu_id) {
   return nets_.size() - 1;
 }
 
-std::unordered_map<std::string, DataBlob> CaffeBinding::Forward(int net_id) {
+std::unordered_map<std::string, DataBlob> MCLC::Forward(int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
       std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
@@ -41,12 +41,12 @@ std::unordered_map<std::string, DataBlob> CaffeBinding::Forward(int net_id) {
   return result;
 }
 
-std::unordered_map<std::string, DataBlob> CaffeBinding::Forward(std::vector<cv::Mat>&& input_image, int net_id) {
+std::unordered_map<std::string, DataBlob> MCLC::Forward(std::vector<cv::Mat>&& input_image, int net_id) {
   SetMemoryDataLayer("data", move(input_image), net_id);
   return Forward(net_id);
 }
 
-void CaffeBinding::SetMemoryDataLayer(std::string layer_name, std::vector<cv::Mat>&& input_image, int net_id) {
+void MCLC::SetMemoryDataLayer(std::string layer_name, std::vector<cv::Mat>&& input_image, int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
       std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
@@ -60,7 +60,7 @@ void CaffeBinding::SetMemoryDataLayer(std::string layer_name, std::vector<cv::Ma
   data_layer_ptr->AddMatVector(input_image, labels);
 }
 
-void CaffeBinding::SetBlobData(std::string blob_name, std::vector<int> blob_shape, float* data, int net_id) {
+void MCLC::SetBlobData(std::string blob_name, std::vector<int> blob_shape, float* data, int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
       std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
@@ -72,7 +72,7 @@ void CaffeBinding::SetBlobData(std::string blob_name, std::vector<int> blob_shap
   predictor->blob_by_name(blob_name)->set_cpu_data(data);
 }
 
-DataBlob CaffeBinding::GetBlobData(std::string blob_name, int net_id) {
+DataBlob MCLC::GetBlobData(std::string blob_name, int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
       std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
@@ -85,7 +85,7 @@ DataBlob CaffeBinding::GetBlobData(std::string blob_name, int net_id) {
   else return { predictor->blob_by_name(blob_name)->cpu_data(), blob->shape(), blob_name };
 }
 
-void CaffeBinding::SetDevice(int gpu_id) {
+void MCLC::SetDevice(int gpu_id) {
   if (gpu_id < 0) {
     Caffe::set_mode(Caffe::CPU);
   }
@@ -95,7 +95,7 @@ void CaffeBinding::SetDevice(int gpu_id) {
   }
 }
 
-CaffeBinding::~CaffeBinding() {
+MCLC::~MCLC() {
   for (auto net : nets_) {
     try {
       delete net;

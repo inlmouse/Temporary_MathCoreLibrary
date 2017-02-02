@@ -113,3 +113,5 @@ packages
 *.db
 *.opendb
 README.md
+*.ipch
+*.htm
