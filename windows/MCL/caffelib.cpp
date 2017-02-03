@@ -17,12 +17,14 @@ using namespace System::Drawing::Imaging;
   pin_ptr<float> pma = &m_array[0]; \
   memcpy(pma, n_array.Data, n_array.Size * sizeof(float));
 
-#define Version "0.8.5"
-#define UpdateLog "Version0.5.1: 全面支持CUDA8.0和CUDNNv5；同时.NetFramework升级到4.5.2，VC++版本提升至v140；舍弃对OpenCV2.4的支持\n\
+#define Version "0.8.6"
+#define UpdateLog "\
+Version0.5.1: 全面支持CUDA8.0和CUDNNv5；同时.NetFramework升级到4.5.2，VC++版本提升至v140；舍弃对OpenCV2.4的支持\n\
 Version0.5.2: 实现弱鸡C++版本的MTCNN，但是在CUDA8.0上有未知原因bug\n\
 Version0.7.1: 添加训练模型的接口；实现更高自由度的API；支持大于1batchsize的并行\n\
 Version0.8.2: 全面使用MemoryDataLayer，支持全动态batchsize，预处理部分交还Caffe，因而接口参数有删减；同时解决了从路径直接读取图像和从内存获取图像前向传播结果不同的问题\n\
-Version0.8.5: 添加NVIDIA NCCL多GPU并行通讯支持"
+Version0.8.5: 添加NVIDIA NCCL多GPU并行通讯支持，支持CUDNN5.1\n\
+Version0.8.6: 添加Python Layer支持"
 
 namespace CaffeSharp {
 	

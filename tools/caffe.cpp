@@ -1,5 +1,6 @@
 #ifdef WITH_PYTHON_LAYER
 #include "boost/python.hpp"
+#include "pythonrun.h"
 namespace bp = boost::python;
 #endif
 
