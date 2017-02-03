@@ -112,6 +112,5 @@ matlab/+caffe/+test/
 packages
 *.db
 *.opendb
-README.md
 *.ipch
 *.htm
