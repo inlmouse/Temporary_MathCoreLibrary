@@ -21,6 +21,7 @@ using namespace caffe;
 const cv::Scalar_<float> BlackPixel(0, 0, 0);
 
 FloatArray::FloatArray(const float* data, int size) : Data(data), Size(size) {}
+FloatArray::FloatArray(const float* data, int size, std::vector<int> shape) : Data(data), Size(size), Shape(shape) {}
 
 _CaffeModel::_CaffeModel(const string &netFile, const string &modelFile)
 {
@@ -236,6 +237,24 @@ void _CaffeModel::EvaluateVector(caffe::Net<float>* net, std::vector<float> vect
 	net->Forward(&loss);
 }
 
+void _CaffeModel::EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image, int DeviceId)
+{
+	_CaffeModel::SetDevice(DeviceId);
+	//memory_data_layer->Reset(NULL, NULL, 0);
+	int height = memory_data_layer->height();
+	int width = memory_data_layer->width();
+	std::vector<int> labels;
+	for (int i = 0; i < image.size(); i++)
+	{
+		labels.push_back(0);
+	}
+	memory_data_layer->set_batch_size(image.size());
+	memory_data_layer->AddMatVector(image, labels);
+	float loss = 0.0;
+
+	net->Forward(&loss);
+}
+
 //APIs:
 FloatArray _CaffeModel::ExtractBitmapOutputs(std::vector<std::string> &imageData, const string &layerName, int DeviceId)
 {
@@ -290,6 +309,25 @@ std::vector<FloatArray> _CaffeModel::ExtractVectorOutputs(std::vector<float> vec
 	{
 		auto blob = _net->blob_by_name(name);
 		results.push_back(FloatArray(blob->cpu_data(), blob->count()));
+	}
+	return results;
+}
+
+FloatArray _CaffeModel::ExtractMatOutputs(std::vector<cv::Mat> &image, const std::string &layerName, int DeviceId)
+{
+	EvaluateMat(_net, image, DeviceId);
+	auto blob = _net->blob_by_name(layerName);
+	return FloatArray(blob->cpu_data(), blob->count(), blob->shape());
+}
+
+std::vector<FloatArray> _CaffeModel::ExtractMatOutputs(std::vector<cv::Mat> &image, const std::vector<std::string> &layerNames, int DeviceId)
+{
+	EvaluateMat(_net, image, DeviceId);
+	vector<FloatArray> results;
+	for (auto& name : layerNames)
+	{
+		auto blob = _net->blob_by_name(name);
+		results.push_back(FloatArray(blob->cpu_data(), blob->count(), blob->shape()));
 	}
 	return results;
 }

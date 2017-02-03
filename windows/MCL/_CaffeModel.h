@@ -27,7 +27,9 @@ struct FloatArray
 {
 	const float* Data;
 	int Size;
+	std::vector<int> Shape;
 	FloatArray(const float* data, int size);
+	FloatArray(const float* data, int size, std::vector<int> shape);
 	//FloatArray(const float* data);
 };
 
@@ -67,7 +69,9 @@ public:
 	std::vector<FloatArray> ExtractFileOutputs(std::vector<std::string> &imageFile, const std::vector<std::string> &layerNames, int DeviceId);
 	FloatArray ExtractVectorOutputs(std::vector<float> vectorData, const std::string &layerName, int DeviceId);
 	std::vector<FloatArray> ExtractVectorOutputs(std::vector<float> vectorData, const std::vector<std::string> &layerNames, int DeviceId);
-
+	//
+	FloatArray ExtractMatOutputs(std::vector<cv::Mat> &image, const std::string &layerName, int DeviceId);
+	std::vector<FloatArray> ExtractMatOutputs(std::vector<cv::Mat> &image, const std::vector<std::string> &layerNames, int DeviceId);
 	// imageData needs to be of size channel*height*width as required by the "data" blob. 
 	// The C++/CLI caller can use GetInputImageWidth()/Height/Channels to get the desired dimension.
 	static bool Alignment(cv::Mat &Ori, std::vector<float>landmerks, cv::Mat &dstimg);
@@ -77,4 +81,5 @@ private:
 	void EvaluateFile(caffe::Net<float>* net, std::vector<std::string> imageFile, int DeviceId);
 	void EvaluateBitmap(caffe::Net<float>* net, std::vector<std::string> imageData, int DeviceId);
 	void EvaluateVector(caffe::Net<float>* net, std::vector<float> vectorData, int DeviceId);
+	void EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image, int DeviceId);
 };
