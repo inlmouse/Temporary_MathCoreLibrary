@@ -23,7 +23,7 @@ template <typename Dtype>
 class HDF5DataLayer : public Layer<Dtype> {
  public:
   explicit HDF5DataLayer(const LayerParameter& param)
-      : Layer<Dtype>(param), offset_() {}
+      : Layer<Dtype>(param){}
   virtual ~HDF5DataLayer();
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
