@@ -435,6 +435,9 @@
     <ClCompile Include="..\..\src\caffe\layers\local_conv_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\caffe\data_reader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\caffe\proto\caffe.pb.h">
@@ -784,6 +787,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\caffe\layers\local_conv_layer.hpp">
       <Filter>include\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\caffe\data_reader.hpp">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

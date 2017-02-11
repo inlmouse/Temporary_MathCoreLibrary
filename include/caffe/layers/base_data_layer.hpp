@@ -68,11 +68,15 @@ class BasePrefetchingDataLayer :
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
 
+  // Prefetches batches (asynchronously if to GPU memory)
+  static const int PREFETCH_COUNT = 3;
+
  protected:
   virtual void InternalThreadEntry();
   virtual void load_batch(Batch<Dtype>* batch) = 0;
 
-  vector<shared_ptr<Batch<Dtype> > > prefetch_;
+  //vector<shared_ptr<Batch<Dtype> > > prefetch_;
+  Batch<Dtype> prefetch_[PREFETCH_COUNT];
   BlockingQueue<Batch<Dtype>*> prefetch_free_;
   BlockingQueue<Batch<Dtype>*> prefetch_full_;
   Batch<Dtype>* prefetch_current_;
