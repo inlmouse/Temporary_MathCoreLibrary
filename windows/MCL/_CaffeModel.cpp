@@ -527,8 +527,10 @@ bool _CaffeModel::Train(std::string solverpath)
 			/*caffe::P2PSync<float> sync(solver, NULL, solver->param());
 			sync.Run(gpus);*/
 #ifdef USE_NCCL
-			caffe::NCCL<float> nccl(solver);
-			nccl.Run(gpus, FLAGS_snapshot.size() > 0 ? FLAGS_snapshot.c_str() : NULL);
+			/*caffe::NCCL<float> nccl(solver);
+			nccl.Run(gpus, FLAGS_snapshot.size() > 0 ? FLAGS_snapshot.c_str() : NULL);*/
+			caffe::P2PSync<float> sync(solver, NULL, solver->param());
+			sync.Run(gpus);
 #else
 			LOG(FATAL) << "Multi-GPU execution not available - rebuild with USE_NCCL";
 #endif
