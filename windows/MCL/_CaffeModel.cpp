@@ -23,18 +23,18 @@ const cv::Scalar_<float> BlackPixel(0, 0, 0);
 FloatArray::FloatArray(const float* data, int size) : Data(data), Size(size) {}
 FloatArray::FloatArray(const float* data, int size, std::vector<int> shape) : Data(data), Size(size), Shape(shape) {}
 
-_CaffeModel::_CaffeModel(const string &netFile, const string &modelFile)
+_CaffeModel::_CaffeModel(const string &netFile, const string &modelFile, bool isencoded)
 {
 	SetDevice(0);
-	_net = new Net<float>(netFile, Phase::TEST);
+	_net = new Net<float>(netFile, Phase::TEST, isencoded);
 	_net->CopyTrainedLayersFrom(modelFile);
 	memory_data_layer = static_pointer_cast<MemoryDataLayer<float>>(_net->layer_by_name("data"));
 }
 
-_CaffeModel::_CaffeModel(const std::string &netFile, const std::string &modelFile, int device = 0)
+_CaffeModel::_CaffeModel(const std::string &netFile, const std::string &modelFile, int device, bool isencoded)
 {
 	SetDevice(device);
-	_net = new Net<float>(netFile, Phase::TEST);
+	_net = new Net<float>(netFile, Phase::TEST, isencoded);
 	_net->CopyTrainedLayersFrom(modelFile);
 	memory_data_layer = static_pointer_cast<MemoryDataLayer<float>>(_net->layer_by_name("data"));
 }

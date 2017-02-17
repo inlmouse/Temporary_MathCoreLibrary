@@ -90,6 +90,14 @@ void ReadNetParamsFromTextFileOrDie(const string& param_file,
   UpgradeNetAsNeeded(param_file, param);
 }
 
+void ReadNetParamsFromEncodeTextFileOrDie(const string& param_file,
+	NetParameter* param, bool isencoded)
+{
+	CHECK(ReadProtoFromEncodeTextFile(param_file, param, isencoded))
+		<< "Failed to parse NetParameter file: " << param_file;
+	UpgradeNetAsNeeded(param_file, param);
+}
+
 void ReadNetParamsFromBinaryFileOrDie(const string& param_file,
                                       NetParameter* param) {
   CHECK(ReadProtoFromBinaryFile(param_file, param))
