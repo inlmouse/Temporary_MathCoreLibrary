@@ -16,6 +16,8 @@ bool UpgradeNetAsNeeded(const string& param_file, NetParameter* param);
 // Read parameters from a file into a NetParameter proto message.
 void ReadNetParamsFromTextFileOrDie(const string& param_file,
                                     NetParameter* param);
+void ReadNetParamsFromEncodeTextFileOrDie(const string& param_file,
+	NetParameter* param, bool isencoded = false);
 void ReadNetParamsFromBinaryFileOrDie(const string& param_file,
                                       NetParameter* param);
 

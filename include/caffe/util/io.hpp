@@ -70,12 +70,22 @@ inline void RemoveCaffeTempDir() {
 
 bool ReadProtoFromTextFile(const char* filename, Message* proto);
 
+bool ReadProtoFromEncodeTextFile(const char* filename, Message* proto, bool isencoded = false);
+
 inline bool ReadProtoFromTextFile(const string& filename, Message* proto) {
   return ReadProtoFromTextFile(filename.c_str(), proto);
 }
 
 inline void ReadProtoFromTextFileOrDie(const char* filename, Message* proto) {
   CHECK(ReadProtoFromTextFile(filename, proto));
+}
+
+inline bool ReadProtoFromEncodeTextFile(const string& filename, Message* proto, bool isencoded = false) {
+	return ReadProtoFromEncodeTextFile(filename.c_str(), proto, isencoded);
+}
+
+inline void ReadProtoFromEncodeTextFileOrDie(const char* filename, Message* proto, bool isencoded = false) {
+	CHECK(ReadProtoFromEncodeTextFile(filename, proto, isencoded));
 }
 
 inline void ReadProtoFromTextFileOrDie(const string& filename, Message* proto) {

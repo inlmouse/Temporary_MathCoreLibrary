@@ -28,12 +28,12 @@ namespace caffe {
 	}
 
 	template <typename Dtype>
-	Net<Dtype>::Net(const string& param_file, Phase phase,
+	Net<Dtype>::Net(const string& param_file, Phase phase, bool isencoded,
 		const int level, const vector<string>* stages,
 		const Net* root_net)
 		: root_net_(root_net) {
 		NetParameter param;
-		ReadNetParamsFromTextFileOrDie(param_file, &param);
+		ReadNetParamsFromEncodeTextFileOrDie(param_file, &param, isencoded);
 		// Set phase, stages and level
 		param.mutable_state()->set_phase(phase);
 		if (stages != NULL) {

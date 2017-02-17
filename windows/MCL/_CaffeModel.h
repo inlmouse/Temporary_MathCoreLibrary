@@ -54,8 +54,8 @@ public:
 
 	static void SetDevice(int device_id); //Use a negative number for CPU only
 										  //caffe::Blob<float>* inputlayer = _net->input_blobs[0];
-	_CaffeModel(const std::string &netFile, const std::string &modelFile);
-	_CaffeModel(const std::string &netFile, const std::string &modelFile, int device);
+	_CaffeModel(const std::string &netFile, const std::string &modelFile, bool isencoded = false);
+	_CaffeModel(const std::string &netFile, const std::string &modelFile, int device = 0, bool isencoded = false);
 	~_CaffeModel();
 	int GetInputImageWidth();
 	int GetInputImageHeight();

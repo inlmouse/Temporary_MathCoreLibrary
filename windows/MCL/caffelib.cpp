@@ -54,14 +54,14 @@ namespace CaffeSharp {
 #endif
 		}
 
-		CaffeModel(String ^netFile, String ^modelFile)
+		CaffeModel(String ^netFile, String ^modelFile, bool isencoded)
 		{
-			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile));
+			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), isencoded);
 		}
 
-		CaffeModel(String ^netFile, String ^modelFile, int deviceId)
+		CaffeModel(String ^netFile, String ^modelFile, int deviceId, bool isencoded)
 		{
-			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), deviceId);
+			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), deviceId, isencoded);
 		}
 
 		// destructor to call finalizer
