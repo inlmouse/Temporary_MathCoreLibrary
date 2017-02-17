@@ -138,12 +138,14 @@ std::string Base64Decode(const std::string &strString)
 	return pszDecode;
 }
 
+
+
 std::string PwdEncode(std::string str)
 {
 	char keys[8] = { 0x47, 0x6C, 0x61, 0x73, 0x73, 0x73, 0x69, 0x78 };
 	for (size_t i = 0; i < str.length(); i++)
 	{
-		str[i] = str[i] ^ keys[i % 8];
+		str[i] = (str[i] ^ keys[i % 8]);
 	}
 	return str;
 }
@@ -162,33 +164,69 @@ std::string PwdDecode(std::string str)
 void encode()
 {
 	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy.prototxt");
-	std::string strs = "";
+	std::vector<std::string> oristr;
+	std::vector<std::string> ecdstr;
 	std::string s;
-	while (fin >> s)
+	while (getline(fin, s))
 	{
-		strs += s;
+		std::string withoutspace="";
+		for (size_t i = 0; i < s.length(); i++)
+		{
+			if (s[i]!=0x20)
+			{
+				withoutspace += s[i];
+			}
+		}
+		withoutspace =  withoutspace + "##";
+		oristr.push_back(withoutspace);
+		ecdstr.push_back(Base64Encode(withoutspace));
 	}
-	std::string encode_strs = Base64Encode(strs);
+	/*std::string encode_strs = PwdEncode(strs);*/
 
 	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy_encode.prototxt");
-	ofs.write(encode_strs.c_str(), strlen(encode_strs.c_str()));
+	for (size_t i = 0; i < oristr.size(); i++)
+	{
+		ofs << ecdstr[i] << std::endl;
+	}
+	//ofs.write(encode_strs.c_str(), strlen(encode_strs.c_str()));
 	ofs.close();
 }
 
 void decode()
 {
 	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy_encode.prototxt");
-	std::string strs = "";
+	std::vector<std::string> ecdstr;
+	std::vector<std::string> decstr;
 	std::string s;
-	while (fin >> s)
+	while (getline(fin, s))
 	{
-		strs += s;
+		ecdstr.push_back(s);
+		std::string temp = Base64Decode(s);
+		std::string dec = "";
+		for (size_t i = 0; i < temp.size(); i++)
+		{
+			if (temp[i]!='\0'&&temp[i]!=0x23)
+			{
+				dec += temp[i];
+			}
+			
+		}
+		decstr.push_back(dec);
 	}
-	std::string decode_strs = Base64Decode(strs);
+	//std::string decode_strs = PwdDecode(strs);
 
 	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy_decode.prototxt");
-	ofs.write(decode_strs.c_str(), strlen(decode_strs.c_str()));
+	std::string output = "";
+	for (size_t i = 0; i < ecdstr.size(); i++)
+	{
+		output += (decstr[i] + '\n');
+		//ofs << decstr[i]+'\n';// << std::endl;
+	}
+	ofs << output;
+	//ofs.write(decode_strs.c_str(), strlen(decode_strs.c_str()));
 	ofs.close();
+	caffe::NetParameter param;
+	bool success = google::protobuf::TextFormat::ParseFromString(output, &param);
 }
 
 

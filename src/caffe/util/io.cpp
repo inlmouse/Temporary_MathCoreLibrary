@@ -108,15 +108,15 @@ std::string Base64Decode(const std::string &strString)
 	return pszDecode;
 }
 
-std::string PwdDecode(std::string str)
-{
-	char keys[8] = { 0x47, 0x6C, 0x61, 0x73, 0x73, 0x73, 0x69, 0x78 };
-	for (size_t i = 0; i < str.length(); i++)
-	{
-		str[i] ^= keys[i % 8];
-	}
-	return str;
-}
+//std::string PwdDecode(std::string str)
+//{
+//	char keys[8] = { 0x47, 0x6C, 0x61, 0x73, 0x73, 0x73, 0x69, 0x78 };
+//	for (size_t i = 0; i < str.length(); i++)
+//	{
+//		str[i] ^= keys[i % 8];
+//	}
+//	return str;
+//}
 
 //**
 
@@ -134,18 +134,32 @@ bool ReadProtoFromEncodeTextFile(const char* filename, Message* proto, bool isen
 	if (isencoded)
 	{
 		std::ifstream fin(filename);
-		std::string strs = "";
+		std::vector<std::string> decstr;
 		std::string s;
-		while (fin >> s)
+		while (getline(fin, s))
 		{
-			strs += s;
+			std::string temp = Base64Decode(s);
+			std::string dec = "";
+			for (size_t i = 0; i < temp.size(); i++)
+			{
+				if (temp[i] != '\0'&&temp[i] != 0x23)
+				{
+					dec += temp[i];
+				}
+			}
+			decstr.push_back(dec);
 		}
-		std::string decode_strs = Base64Decode((strs));
+		std::string output = "";
+		for (size_t i = 0; i < decstr.size(); i++)
+		{
+			output += (decstr[i] + '\n');
+		}
+		fin.close();
 		caffe::NetParameter param;
-		bool success = google::protobuf::TextFormat::ParseFromString(decode_strs, &param);
-		std::string outstr;
+		bool success = google::protobuf::TextFormat::ParseFromString(output, &param);
+		/*std::string outstr;
 		success = google::protobuf::TextFormat::PrintToString(param, &outstr);
-		success = google::protobuf::TextFormat::ParseFromString(outstr, proto);
+		success = google::protobuf::TextFormat::ParseFromString(outstr, proto);*/
 		return success;
 	}
 	else
