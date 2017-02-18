@@ -16,7 +16,7 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute(L"")];
 [assembly:AssemblyCompanyAttribute(L"Glasssix")];
 [assembly:AssemblyProductAttribute(L"MathCoreLibrary")];
-[assembly:AssemblyCopyrightAttribute(L"Glasssix Copyright (c) 2015-2017")];
+[assembly:AssemblyCopyrightAttribute(L"Glasssix Copyright (c) 2014-2017")];
 [assembly:AssemblyTrademarkAttribute(L"")];
 [assembly:AssemblyCultureAttribute(L"")];
 
@@ -31,7 +31,7 @@ using namespace System::Security::Permissions;
 // You can specify all the value or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly:AssemblyVersionAttribute("0.8.6.*")];
+[assembly:AssemblyVersionAttribute("0.8.8.*")];
 
 [assembly:ComVisible(false)];
 

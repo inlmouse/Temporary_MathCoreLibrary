@@ -55,6 +55,15 @@ namespace CaffeSharp {
 #endif
 		}
 
+		CaffeModel(String ^netFile, String ^modelFile)
+		{
+			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), false);
+		}
+
+		CaffeModel(String ^netFile, String ^modelFile, int deviceId)
+		{
+			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), deviceId, false);
+		}
 
 		CaffeModel(String ^netFile, String ^modelFile, bool isencoded)
 		{

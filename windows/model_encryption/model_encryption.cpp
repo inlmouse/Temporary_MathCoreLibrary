@@ -163,27 +163,36 @@ std::string PwdDecode(std::string str)
 
 void encode()
 {
-	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy.prototxt");
+	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\GlasssixLandmarks.prototxt");
 	std::vector<std::string> oristr;
 	std::vector<std::string> ecdstr;
 	std::string s;
 	while (getline(fin, s))
 	{
-		std::string withoutspace="";
-		for (size_t i = 0; i < s.length(); i++)
+		try
 		{
-			if (s[i]!=0x20)
+			std::string withoutspace = "";
+			for (size_t i = 0; i < s.length(); i++)
 			{
-				withoutspace += s[i];
+				if (s[i] != 0x20)
+				{
+					withoutspace += s[i];
+				}
 			}
+			std::cout << s << std::endl;
+			withoutspace = withoutspace + "##";
+			oristr.push_back(withoutspace);
+			ecdstr.push_back(Base64Encode(withoutspace));
 		}
-		withoutspace =  withoutspace + "##";
-		oristr.push_back(withoutspace);
-		ecdstr.push_back(Base64Encode(withoutspace));
+		catch (...)
+		{
+			std::cout << s << std::endl;
+		}
+		
 	}
 	/*std::string encode_strs = PwdEncode(strs);*/
 
-	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy_encode.prototxt");
+	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\GlasssixLandmarks.dat");
 	for (size_t i = 0; i < oristr.size(); i++)
 	{
 		ofs << ecdstr[i] << std::endl;
@@ -194,7 +203,7 @@ void encode()
 
 void decode()
 {
-	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy_encode.prototxt");
+	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\GlasssixLandmarks.dat");
 	std::vector<std::string> ecdstr;
 	std::vector<std::string> decstr;
 	std::string s;
@@ -215,7 +224,7 @@ void decode()
 	}
 	//std::string decode_strs = PwdDecode(strs);
 
-	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\IPBBox_deploy_decode.prototxt");
+	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\GlasssixLandmarks_decode.prototxt");
 	std::string output = "";
 	for (size_t i = 0; i < ecdstr.size(); i++)
 	{

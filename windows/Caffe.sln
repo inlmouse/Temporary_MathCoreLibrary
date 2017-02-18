@@ -81,6 +81,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "python", "python.pyproj", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "model_encryption", "model_encryption\model_encryption.vcxproj", "{F3B8EC7E-9D7E-4C5B-8313-054E1CDC19C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csharp_test", "csharp_test\csharp_test.csproj", "{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -271,6 +273,18 @@ Global
 		{F3B8EC7E-9D7E-4C5B-8313-054E1CDC19C5}.Release|x64.Build.0 = Release|x64
 		{F3B8EC7E-9D7E-4C5B-8313-054E1CDC19C5}.Release|x86.ActiveCfg = Release|Win32
 		{F3B8EC7E-9D7E-4C5B-8313-054E1CDC19C5}.Release|x86.Build.0 = Release|Win32
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Debug|x64.ActiveCfg = Debug|x64
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Debug|x64.Build.0 = Debug|x64
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Debug|x86.Build.0 = Debug|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x64.ActiveCfg = Release|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x64.Build.0 = Release|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x86.ActiveCfg = Release|Any CPU
+		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
