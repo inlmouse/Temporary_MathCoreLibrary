@@ -405,7 +405,7 @@ bool _CaffeModel::Alignment(cv::Mat &Ori, std::vector<float>landmerks, cv::Mat &
 	return true;
 }
 
-void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeModel IPBbox, _CaffeModel IPTs5, std::vector<cv::Mat> &F, FloatArray &headpose)
+void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeModel *IPBbox, _CaffeModel *IPTs5, std::vector<cv::Mat> &F, const float *headpose)
 {
 	std::vector<cv::Mat> B(rect_A.size());
 	for (size_t i = 0; i < rect_A.size(); i++)
@@ -416,11 +416,10 @@ void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeMo
 	std::vector<string> IPBbox_layers;
 	IPBbox_layers.push_back("fc2");
 	IPBbox_layers.push_back("fc3");
-	std::vector<FloatArray> IPBbox_feature = IPBbox.ExtractMatOutputs(B, IPBbox_layers, 0);
+	std::vector<FloatArray> IPBbox_feature = IPBbox->ExtractMatOutputs(B, IPBbox_layers, 0);
 
 	const float* bbox = IPBbox_feature[0].Data;
-	const float* headpose_single = IPBbox_feature[1].Data;
-	headpose = IPBbox_feature[1];
+	headpose = IPBbox_feature[1].Data;
 	std::vector<cv::Mat> RotatedB(B.size());
 	std::vector<cv::Mat> C(B.size());
 	std::vector<cv::Rect2i> MarginRect(C.size());
@@ -430,7 +429,7 @@ void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeMo
 		cv::Rect2i base_rect(cvRound(bbox[4 * i + 0] * B[i].cols), cvRound(bbox[4 * i + 1] * B[i].rows), cvRound((bbox[4 * i + 2] - bbox[4 * i + 0]) * B[i].cols), cvRound((bbox[4 * i + 3] - bbox[4 * i + 1]) * B[i].rows));
 		cv::Point2f base_center((bbox[4 * i + 0] + bbox[4 * i + 2]) * B[i].cols / 2, (bbox[4 * i + 1] + bbox[4 * i + 3]) * B[i].rows / 2);
 
-		double angeltheta = headpose_single[2] * 90;
+		double angeltheta = headpose[3 * i + 2] * 90;
 		double arctheta = angeltheta * CV_PI / 180;
 
 		RotatedB[i] = RotateMat(B[i], base_center, -1 * angeltheta, 1.0);
@@ -439,7 +438,7 @@ void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeMo
 		base_rect.x += delta;
 		base_center.x += delta;
 
-		int delta_pitch = cvRound((1 - cos(headpose_single[1] * 90 * CV_PI / 180)) * base_rect.height / 2);
+		int delta_pitch = cvRound((1 - cos(headpose[3 * i + 1] * 90 * CV_PI / 180)) * base_rect.height / 2);
 
 		base_rect.y -= delta_pitch;
 		base_rect.height += 2 * delta_pitch;
@@ -452,7 +451,7 @@ void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeMo
 		RotatedB[i](MarginRect[i]).copyTo(C[i]);
 	}
 
-	FloatArray IPTs5_feature = IPTs5.ExtractMatOutputs(C, "fc2", 0);
+	FloatArray IPTs5_feature = IPTs5->ExtractMatOutputs(C, "fc2", 0);
 	const float* pts5 = IPTs5_feature.Data;
 	std::vector<cv::Mat> D(C.size());
 	std::vector<cv::Mat> E(D.size());
