@@ -155,11 +155,7 @@ bool ReadProtoFromEncodeTextFile(const char* filename, Message* proto, bool isen
 			output += (decstr[i] + '\n');
 		}
 		fin.close();
-		caffe::NetParameter param;
-		bool success = google::protobuf::TextFormat::ParseFromString(output, &param);
-		/*std::string outstr;
-		success = google::protobuf::TextFormat::PrintToString(param, &outstr);
-		success = google::protobuf::TextFormat::ParseFromString(outstr, proto);*/
+		bool success = google::protobuf::TextFormat::ParseFromString(output, proto);
 		return success;
 	}
 	else

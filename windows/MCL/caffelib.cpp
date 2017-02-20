@@ -33,7 +33,6 @@ namespace CaffeSharp {
 	public ref class CaffeModel
 	{
 	private:
-		_CaffeModel *m_net;
 
 		static void SetDevice(int deviceId)
 		{
@@ -41,6 +40,7 @@ namespace CaffeSharp {
 		}
 
 	public:
+		_CaffeModel *m_net;
 		static int DeviceCount;
 		static const  System::String^ version = Version;
 		static const  System::String^ updatelog = UpdateLog;
@@ -55,6 +55,15 @@ namespace CaffeSharp {
 #endif
 		}
 
+		CaffeModel(String ^netFile, String ^modelFile)
+		{
+			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), false);
+		}
+
+		CaffeModel(String ^netFile, String ^modelFile, int deviceId)
+		{
+			m_net = new _CaffeModel(TO_NATIVE_STRING(netFile), TO_NATIVE_STRING(modelFile), deviceId, false);
+		}
 
 		CaffeModel(String ^netFile, String ^modelFile, bool isencoded)
 		{
@@ -298,6 +307,44 @@ namespace CaffeSharp {
 				}
 			}
 			return results;
+		}
+
+		static void Alignment(Bitmap^ imgData, array<Drawing::Rectangle>^ fastface_rect, CaffeModel IPBbox, CaffeModel IPTs5, array<Bitmap^>^ dstImgs, array<float>^ headpose)
+		{
+			array<bool>^ results = gcnew array<bool>(fastface_rect->Length);
+			headpose = gcnew array<float>(fastface_rect->Length * 3);
+			cv::Mat Ori;
+			std::vector<cv::Mat> outputs;
+			int a = ConvertBitmapToMat(imgData, Ori);
+			if (a == 0)
+			{
+				std::vector<cv::Rect> rect_A(fastface_rect->Length);
+				for (size_t i = 0; i < fastface_rect->Length; i++)
+				{
+					rect_A[i] = cv::Rect(fastface_rect[i].X, fastface_rect[i].Y, fastface_rect[i].Width, fastface_rect[i].Height);
+				}
+				const float * temp = nullptr;
+				_CaffeModel::Alignment(Ori, rect_A, IPBbox.m_net, IPTs5.m_net, outputs, temp);
+				for (size_t i = 0; i < fastface_rect->Length; i++)
+				{
+					CopyMatToBitmap(outputs[i], dstImgs[i]);
+					for (size_t j = 0; j < 3; j++)
+					{
+						headpose[i * 3 + j] = temp[i * 3 + j];
+					}
+					outputs[i].release();
+				}
+				delete[] temp;
+				Ori.release();
+			}
+			else
+			{
+				for (size_t i = 0; i < fastface_rect->Length; i++)
+				{
+					outputs[i].release();
+				}
+				Ori.release();
+			}
 		}
 
 		static bool Train(String^ Solverpath)
