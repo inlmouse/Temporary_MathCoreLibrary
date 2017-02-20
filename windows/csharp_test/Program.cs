@@ -11,9 +11,9 @@ namespace csharp_test
     {
         static void Main(string[] args)
         {
-            string net = @"IPBBox_deploy.dat";
-            string model = @"IPBBox_iter_iter_60000.caffemodel";
-            CaffeModel IPBbox=new CaffeModel(net,model,true);
+            string net = @"center_loss_ms.prototxt";
+            string model = @"center_loss_ms.caffemodel";
+            CaffeModel IPBbox=new CaffeModel(net,model,false);
 
             float[][] a =
             IPBbox.ExtractFileOutputs(new[] {@"D:\Research\FacialLandmarks\Data\5PTS\batch1_1.jpg"},

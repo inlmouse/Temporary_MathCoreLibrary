@@ -255,6 +255,25 @@ void _CaffeModel::EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image
 	net->Forward(&loss);
 }
 
+//Image Helper functions:
+cv::Rect2i GetRoiRect(cv::Rect2i& OriRect) {
+	cv::Rect2i rect;
+	rect.x = cvRound(OriRect.x - OriRect.width * 0.2);
+	rect.y = cvRound(OriRect.y - OriRect.height * 0.2);
+	rect.width = cvRound(OriRect.width * 1.4);
+	rect.height = cvRound(OriRect.height * 1.4);
+
+	return rect;
+}
+
+cv::Mat RotateMat(cv::Mat& OriMat, cv::Point2f BasePoint, double DegreeAngle, double scale) {
+	cv::Mat rot_mat = cv::getRotationMatrix2D(BasePoint, DegreeAngle, scale);
+	cv::Mat rot(cv::Size(OriMat.cols, OriMat.rows), OriMat.type(), cv::Scalar::all(0));
+	warpAffine(OriMat, rot, rot_mat, OriMat.size(), cv::INTER_CUBIC, cv::BORDER_CONSTANT, cv::Scalar::all(0));
+	return rot;
+}
+
+
 //APIs:
 FloatArray _CaffeModel::ExtractBitmapOutputs(std::vector<std::string> &imageData, const string &layerName, int DeviceId)
 {
@@ -385,6 +404,101 @@ bool _CaffeModel::Alignment(cv::Mat &Ori, std::vector<float>landmerks, cv::Mat &
 	//rot.~Mat();
 	return true;
 }
+
+void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeModel IPBbox, _CaffeModel IPTs5, std::vector<cv::Mat> &F, FloatArray &headpose)
+{
+	std::vector<cv::Mat> B(rect_A.size());
+	for (size_t i = 0; i < rect_A.size(); i++)
+	{
+		cv::Rect2i rect_B = GetRoiRect(rect_A[i]);
+		Ori(rect_B).copyTo(B[i]);
+	}
+	std::vector<string> IPBbox_layers;
+	IPBbox_layers.push_back("fc2");
+	IPBbox_layers.push_back("fc3");
+	std::vector<FloatArray> IPBbox_feature = IPBbox.ExtractMatOutputs(B, IPBbox_layers, 0);
+
+	const float* bbox = IPBbox_feature[0].Data;
+	const float* headpose_single = IPBbox_feature[1].Data;
+	headpose = IPBbox_feature[1];
+	std::vector<cv::Mat> RotatedB(B.size());
+	std::vector<cv::Mat> C(B.size());
+	std::vector<cv::Rect2i> MarginRect(C.size());
+
+	for (int i = 0; i < B.size(); i++)
+	{
+		cv::Rect2i base_rect(cvRound(bbox[4 * i + 0] * B[i].cols), cvRound(bbox[4 * i + 1] * B[i].rows), cvRound((bbox[4 * i + 2] - bbox[4 * i + 0]) * B[i].cols), cvRound((bbox[4 * i + 3] - bbox[4 * i + 1]) * B[i].rows));
+		cv::Point2f base_center((bbox[4 * i + 0] + bbox[4 * i + 2]) * B[i].cols / 2, (bbox[4 * i + 1] + bbox[4 * i + 3]) * B[i].rows / 2);
+
+		double angeltheta = headpose_single[2] * 90;
+		double arctheta = angeltheta * CV_PI / 180;
+
+		RotatedB[i] = RotateMat(B[i], base_center, -1 * angeltheta, 1.0);
+		//*****
+		int delta = cvRound(sin(arctheta) * base_rect.height / 2);
+		base_rect.x += delta;
+		base_center.x += delta;
+
+		int delta_pitch = cvRound((1 - cos(headpose_single[1] * 90 * CV_PI / 180)) * base_rect.height / 2);
+
+		base_rect.y -= delta_pitch;
+		base_rect.height += 2 * delta_pitch;
+
+		int Margin_Height = cvRound(base_rect.height * 1.2f);
+		int Margin_X = cvRound(base_center.x - Margin_Height / 2);
+		int Margin_Y = cvRound(base_center.y - Margin_Height / 2);
+
+		MarginRect[i] = cv::Rect2i(Margin_X, Margin_Y, Margin_Height, Margin_Height);
+		RotatedB[i](MarginRect[i]).copyTo(C[i]);
+	}
+
+	FloatArray IPTs5_feature = IPTs5.ExtractMatOutputs(C, "fc2", 0);
+	const float* pts5 = IPTs5_feature.Data;
+	std::vector<cv::Mat> D(C.size());
+	std::vector<cv::Mat> E(D.size());
+	F = std::vector<cv::Mat>(E.size());
+	for (size_t i = 0; i < C.size(); i++)
+	{
+		cv::Point2f EyeCenter = ((pts5[10 * i + 0] + pts5[10 * i + 2]) / 2 * C[i].cols, (pts5[10 * i + 1] + pts5[10 * i + 3]) / 2 * C[i].rows);
+		cv::Point2f MouthCenter = ((pts5[10 * i + 6] + pts5[10 * i + 8]) / 2 * C[i].cols, (pts5[10 * i + 7] + pts5[10 * i + 9]) / 2 * C[i].rows);
+		cv::Point2f half_square(0.5f * C[i].cols, 0.35f *  C[i].rows);
+		float distance_x = EyeCenter.x - half_square.x;
+		float distance_y = EyeCenter.y - half_square.y;
+
+		float distance_me = sqrt(pow((MouthCenter.x - EyeCenter.x), 2) +
+			pow((MouthCenter.y - EyeCenter.y), 2));
+
+		float scale = distance_me / (C[i].rows * 0.4f);
+
+		MarginRect[i].x += (int)distance_x;
+		MarginRect[i].y += (int)distance_y;
+
+		double tan = (pts5[10 * i + 1] - pts5[10 * i + 3]) / (pts5[10 * i + 0] + pts5[10 * i + 2]);
+		double arctan = atan(tan) * 180 / CV_PI;
+		D[i] = RotateMat(B[i], cv::Point2f(half_square.x + MarginRect[i].x, half_square.y + MarginRect[i].y), -1 * arctan, 1.0);
+		//*******
+
+		MarginRect[i].x = MarginRect[i].x + cvRound((1 - scale) * MarginRect[i].width * 0.5f);
+		MarginRect[i].y = MarginRect[i].y + cvRound((1 - scale) * MarginRect[i].height * 0.35f);
+		MarginRect[i].width = cvRound(MarginRect[i].width * scale);
+		MarginRect[i].height = cvRound(MarginRect[i].height * scale);
+
+		B[i](MarginRect[i]).copyTo(E[i]);
+
+		cv::Rect finalRect(cvRound(1.0f / 14 * E[i].cols), 0, cvRound(12.0f / 14 * E[i].cols), E[i].rows);
+		E[i](finalRect).copyTo(F[i]);
+	}
+	for (size_t i = 0; i < rect_A.size(); i++)
+	{
+		B[i].release();
+		RotatedB[i].release();
+		C[i].release();
+		D[i].release();
+		E[i].release();
+	}
+}
+
+
 
 //Train Funtion:
 DEFINE_string(solver, "",
