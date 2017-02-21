@@ -17,7 +17,7 @@ using namespace System::Drawing::Imaging;
   pin_ptr<float> pma = &m_array[0]; \
   memcpy(pma, n_array.Data, n_array.Size * sizeof(float));
 
-#define Version "0.8.8"
+#define Version "0.8.9"
 #define UpdateLog "\
 Version0.5.1: 全面支持CUDA8.0和CUDNNv5；同时.NetFramework升级到4.5.2，VC++版本提升至v140；舍弃对OpenCV2.4的支持\n\
 Version0.5.2: 实现弱鸡C++版本的MTCNN，但是在CUDA8.0上有未知原因bug\n\
@@ -26,21 +26,22 @@ Version0.8.2: 全面使用MemoryDataLayer，支持全动态batchsize，预处理
 Version0.8.5: 添加NVIDIA NCCL多GPU并行通讯支持，支持CUDNN5.1\n\
 Version0.8.6: 添加Python Layer支持\n\
 Version0.8.7: 修复NCCL问题，现阶段仍使用P2P Access\n\
-Version0.8.8: 支持加密prototxt"
+Version0.8.8: 支持加密prototxt\n\
+Version0.8.9: 添加两步精细对齐函数，现阶段兼容原模型"
 
 namespace CaffeSharp {
 	
 	public ref class CaffeModel
 	{
 	private:
-
+		_CaffeModel *m_net;
 		static void SetDevice(int deviceId)
 		{
 			_CaffeModel::SetDevice(deviceId);
 		}
 
 	public:
-		_CaffeModel *m_net;
+		
 		static int DeviceCount;
 		static const  System::String^ version = Version;
 		static const  System::String^ updatelog = UpdateLog;
@@ -309,42 +310,84 @@ namespace CaffeSharp {
 			return results;
 		}
 
-		static void Alignment(Bitmap^ imgData, array<Drawing::Rectangle>^ fastface_rect, CaffeModel IPBbox, CaffeModel IPTs5, array<Bitmap^>^ dstImgs, array<float>^ headpose)
+		static array<Bitmap^>^ Align_Step1(array<Bitmap^>^ B, array<Drawing::Rectangle>^ MarginRect, array<float>^ bbox, array<float>^ headpose)
 		{
-			array<bool>^ results = gcnew array<bool>(fastface_rect->Length);
-			headpose = gcnew array<float>(fastface_rect->Length * 3);
-			cv::Mat Ori;
-			std::vector<cv::Mat> outputs;
-			int a = ConvertBitmapToMat(imgData, Ori);
-			if (a == 0)
+			std::vector<cv::Mat> _B(B->Length);
+			std::vector<float> _bbox(bbox->Length);
+			std::vector<float> _headpose(headpose->Length);
+			std::vector<cv::Rect2i> _MarginRect;
+			for (int i = 0; i < B->Length; i++)
 			{
-				std::vector<cv::Rect> rect_A(fastface_rect->Length);
-				for (size_t i = 0; i < fastface_rect->Length; i++)
+				ConvertBitmapToMat(B[i], _B[i]);
+				for (size_t j = 0; j < 4; j++)
 				{
-					rect_A[i] = cv::Rect(fastface_rect[i].X, fastface_rect[i].Y, fastface_rect[i].Width, fastface_rect[i].Height);
+					_bbox[4 * i + j] = bbox[4 * i + j];
 				}
-				const float * temp = nullptr;
-				_CaffeModel::Alignment(Ori, rect_A, IPBbox.m_net, IPTs5.m_net, outputs, temp);
-				for (size_t i = 0; i < fastface_rect->Length; i++)
+				for (size_t j = 0; j < 3; j++)
 				{
-					CopyMatToBitmap(outputs[i], dstImgs[i]);
-					for (size_t j = 0; j < 3; j++)
-					{
-						headpose[i * 3 + j] = temp[i * 3 + j];
-					}
-					outputs[i].release();
+					_headpose[3 * i + j] = headpose[3 * i + j];
 				}
-				delete[] temp;
-				Ori.release();
 			}
-			else
+			
+			std::vector<cv::Mat> _C = _CaffeModel::AlignStep1(_B, _bbox, _headpose, _MarginRect);
+			//cv::imwrite( "test_C.jpg", _C[0]);
+			/*MarginRect = gcnew array<Drawing::Rectangle>(B->Length);*/
+			array<Bitmap^>^ C = gcnew array<Bitmap^>(B->Length);
+			for (size_t i = 0; i < B->Length; i++)
 			{
-				for (size_t i = 0; i < fastface_rect->Length; i++)
+				C[i] = gcnew System::Drawing::Bitmap(
+					_C[i].cols, _C[i].rows, System::Drawing::Imaging::PixelFormat::Format24bppRgb);
+				B[i] = gcnew System::Drawing::Bitmap(
+					_B[i].cols, _B[i].rows, System::Drawing::Imaging::PixelFormat::Format24bppRgb);
+				if (_C[i].channels()==4)
 				{
-					outputs[i].release();
+					cvtColor(_C[i], _C[i], CV_BGRA2BGR);
 				}
-				Ori.release();
+				if (_B[i].channels()==4)
+				{
+					cvtColor(_B[i], _B[i], CV_BGRA2BGR);
+				}
+				CopyMatToBitmap(_C[i], C[i]);
+				CopyMatToBitmap(_B[i], B[i]);
+				MarginRect[i] = Drawing::Rectangle(_MarginRect[i].x, _MarginRect[i].y, _MarginRect[i].width, _MarginRect[i].height);
+				_B[i].release();
+				_C[i].release();
 			}
+			return C;
+		}
+
+		static array<Bitmap^>^ Align_Step2(array<Bitmap^>^ B, array<Bitmap^>^ C, array<float>^ ipts5, array<Drawing::Rectangle>^ MarginRect, int Width, int Height)
+		{
+			std::vector<cv::Mat> _B(B->Length);
+			std::vector<cv::Size> _size_C(C->Length);
+			std::vector<float> _ipts5(ipts5->Length);
+			std::vector<cv::Rect2i> _MarginRect(MarginRect->Length);
+			for (int i = 0; i < B->Length; i++)
+			{
+				ConvertBitmapToMat(B[i], _B[i]);
+				_size_C[i] = cv::Size(C[i]->Size.Width, C[i]->Size.Height);
+				_MarginRect[i] = cv::Rect2i(MarginRect[i].X, MarginRect[i].Y, MarginRect[i].Width, MarginRect[i].Height);
+				for (size_t j = 0; j < 10; j++)
+				{
+					_ipts5[i * 10 + j] = ipts5[i * 10 + j];
+				}
+			}
+
+			std::vector<cv::Mat> _F = _CaffeModel::AlignStep2(_B, _size_C, _ipts5, _MarginRect, Width, Height);
+			array<Bitmap^>^ F = gcnew array<Bitmap^>(B->Length);
+			for (size_t i = 0; i < B->Length; i++)
+			{
+				F[i] = gcnew System::Drawing::Bitmap(
+					_F[i].cols, _F[i].rows, System::Drawing::Imaging::PixelFormat::Format24bppRgb);
+				if (_F[i].channels()==4)
+				{
+					cvtColor(_F[i], _F[i], CV_BGRA2BGR);
+				}
+				CopyMatToBitmap(_F[i], F[i]);
+				_B[i].release();
+				_F[i].release();
+			}
+			return F;
 		}
 
 		static bool Train(String^ Solverpath)
@@ -441,8 +484,15 @@ namespace CaffeSharp {
 		{
 			// ?bitmap 初始化  
 			/*System::Drawing::Bitmap ^dst = gcnew System::Drawing::Bitmap(
-			src->cols, src->rows, System::Drawing::Imaging::PixelFormat::Format24bppRgb);*/
-
+			src.cols, src.rows, System::Drawing::Imaging::PixelFormat::Format24bppRgb);*/
+			/*if (src.channels()==4)
+			{
+				cvCvtColor(src, src, CV_BGRA2BGR);
+			}
+			if (src.channels()==1)
+			{
+				cvCvtColor(&src, &src, CV_GRAY2BGR);
+			}*/
 			// ?获取 bitmap 数据指针  
 			System::Drawing::Imaging::BitmapData ^data = dst->LockBits(
 				*(gcnew System::Drawing::Rectangle(0, 0, dst->Width, dst->Height)),
@@ -452,7 +502,7 @@ namespace CaffeSharp {
 
 			// 获取 cv::Mat 数据地址  
 			//src->addref();
-
+			//int x = src.channels();
 			// ?复制图像数据  
 			if (src.channels() == 3 && src.isContinuous()) {
 				memcpy(data->Scan0.ToPointer(), src.data,
@@ -578,6 +628,9 @@ namespace CaffeSharp {
 			return output;
 		}
 
+		
+
 	};
 
+	
 }

@@ -75,7 +75,8 @@ public:
 	// imageData needs to be of size channel*height*width as required by the "data" blob. 
 	// The C++/CLI caller can use GetInputImageWidth()/Height/Channels to get the desired dimension.
 	static bool Alignment(cv::Mat &Ori, std::vector<float>landmerks, cv::Mat &dstimg);
-	static void Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeModel *IPBbox, _CaffeModel *IPTs5, std::vector<cv::Mat> &F, const float *headpose);
+	static std::vector<cv::Mat> AlignStep1(std::vector<cv::Mat> B, std::vector<float> bbox, std::vector<float> headpsoe, std::vector<cv::Rect2i> &MarginRect);
+	static std::vector<cv::Mat> AlignStep2(std::vector<cv::Mat> B, std::vector<cv::Size> size_C, std::vector<float> pts5, std::vector<cv::Rect2i> &MarginRect, int ritow, int ritoh);
 	static bool Train(std::string solverpath);
 
 private:
@@ -84,3 +85,4 @@ private:
 	void EvaluateVector(caffe::Net<float>* net, std::vector<float> vectorData, int DeviceId);
 	void EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image, int DeviceId);
 };
+
