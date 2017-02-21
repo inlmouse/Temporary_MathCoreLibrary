@@ -24,7 +24,7 @@ namespace csharp_test
 
             FastFace ff=new FastFace(1.1f,3,24);
 
-            Bitmap bmp=new Bitmap(@"D:\Research\FacialLandmarks\Data\UMD\umdfaces_batch2\aaron_pryor\aaron_pryor_0017.jpg");
+            Bitmap bmp=new Bitmap(@"D:\Research\FacialLandmarks\Data\UMD\umdfaces_batch2\stan_freberg\stan_freberg_0001.jpg");
 
 
             FaceInfo info = ff.Facedetect_Multiview_Reinforce(bmp);
@@ -38,14 +38,14 @@ namespace csharp_test
                 int iHeight = Convert.ToInt32(info.r[i].Height * 1.4);
                 bits[i] = KiCut(bmp, StartX, StartY, iWidth, iHeight);
             }
-            
-            float[][] aa = IPBbox.ExtractBitmapOutputs(bits, new[] {"fc2", "fc3"}, 0);
-            Rectangle[] rects=new Rectangle[info.count];
+            float[][] aa = IPBbox.ExtractBitmapOutputs(bits, new[] { "fc2", "fc3" }, 0);
+            Rectangle[] rects = new Rectangle[info.count];
             Bitmap[] C = CaffeModel.Align_Step1(bits, rects, aa[0], aa[1]);
-           
+
             float[] bb = IPTs5.ExtractBitmapOutputs(C, "fc2", 0);
             Bitmap[] F = CaffeModel.Align_Step2(bits, C, bb, rects, 128, 128);
-            //F[0].Save("test.jpg");
+
+            F[0].Save("test.jpg");
             float[][] a =
             IPBbox.ExtractFileOutputs(new[] {@"D:\Research\FacialLandmarks\Data\5PTS\batch1_1.jpg"},
                 new[] {"fc2", "fc3"}, 0);

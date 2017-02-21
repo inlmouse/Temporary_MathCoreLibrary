@@ -424,7 +424,10 @@ std::vector<cv::Mat> _CaffeModel::AlignStep1(std::vector<cv::Mat> B, std::vector
 	std::vector<cv::Mat> RotatedB(B.size());
 	std::vector<cv::Mat> C(B.size());
 	MarginRect = std::vector<cv::Rect2i>(C.size());
-	for (int i = 0; i < B.size(); i++)
+#ifndef _DEBUG
+#pragma omp parallel for  
+#endif
+	for (int i = 0; i < (int)B.size(); i++)
 	{
 		cv::Rect2i base_rect(cvRound(bbox[4 * i + 0] * B[i].cols), cvRound(bbox[4 * i + 1] * B[i].rows), cvRound((bbox[4 * i + 2] - bbox[4 * i + 0]) * B[i].cols), cvRound((bbox[4 * i + 3] - bbox[4 * i + 1]) * B[i].rows));
 		cv::Point2f base_center((bbox[4 * i + 0] + bbox[4 * i + 2]) * B[i].cols / 2, (bbox[4 * i + 1] + bbox[4 * i + 3]) * B[i].rows / 2);
@@ -450,7 +453,7 @@ std::vector<cv::Mat> _CaffeModel::AlignStep1(std::vector<cv::Mat> B, std::vector
 		MarginRect[i] = cv::Rect2i(Margin_X, Margin_Y, Margin_Height, Margin_Height);
 		RotatedB[i](MarginRect[i]).copyTo(C[i]);
 		cv::Rect2i temp(0, 0, RotatedB[i].cols, RotatedB[i].rows);
-		RotatedB[i](temp).copyTo(B[i]);
+		RotatedB[i](temp).copyTo(B[i]);//check brondary!
 		//B[i] = Resize4Times(RotatedB[i]);
 		RotatedB[i].release();
 		C[i] = Resize4Times(C[i]);
@@ -463,7 +466,10 @@ std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector
 	std::vector<cv::Mat> D(B.size());
 	std::vector<cv::Mat> E(D.size());
 	std::vector<cv::Mat> F = std::vector<cv::Mat>(E.size());
-	for (size_t i = 0; i < B.size(); i++)
+#ifndef _DEBUG
+#pragma omp parallel for  
+#endif
+	for (int i = 0; i < (int)B.size(); i++)
 	{
 		cv::Point2f EyeCenter((pts5[10 * i + 0] + pts5[10 * i + 2]) / 2 * size_C[i].width, (pts5[10 * i + 1] + pts5[10 * i + 3]) / 2 * size_C[i].height);
 		cv::Point2f MouthCenter((pts5[10 * i + 6] + pts5[10 * i + 8]) / 2 * size_C[i].width, (pts5[10 * i + 7] + pts5[10 * i + 9]) / 2 * size_C[i].height);
@@ -489,7 +495,12 @@ std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector
 		MarginRect[i].width = cvRound(MarginRect[i].width * scale);
 		MarginRect[i].height = cvRound(MarginRect[i].height * scale);
 
-		B[i](MarginRect[i]).copyTo(E[i]);
+		E[i] = cv::Mat (cv::Size(MarginRect[i].width, MarginRect[i].height), CV_8UC3, cv::Scalar::all(0));
+		cv::Rect src_roi(cv::max(MarginRect[i].x,0), cv::max(MarginRect[i].y, 0), ((MarginRect[i].x + MarginRect[i].width) <= B[i].cols ? MarginRect[i].width : (B[i].cols - MarginRect[i].x)), ((MarginRect[i].y + MarginRect[i].height) <= B[i].rows ? MarginRect[i].height : (B[i].rows - MarginRect[i].y)));
+		cv::Rect dsc_roi(MarginRect[i].x>=0?0:-1* MarginRect[i].x, MarginRect[i].y >= 0 ? 0 : -1 * MarginRect[i].y, ((MarginRect[i].x + MarginRect[i].width) <= B[i].cols ? MarginRect[i].width : (B[i].cols - MarginRect[i].x)), ((MarginRect[i].y + MarginRect[i].height) <= B[i].rows ? MarginRect[i].height : (B[i].rows - MarginRect[i].y)));
+		//cv::Mat  dsc = E[i](dsc_roi);
+		B[i](src_roi).convertTo(E[i], B[i].type(), 1, 0);
+		//B[i](MarginRect[i]).copyTo(E[i]);
 
 		cv::Rect finalRect(cvRound((Height - Width) * 1.0f / (2 * Height) * E[i].cols), 0, cvRound((2 * Width) * 1.0f / (2 * Height) * E[i].cols), E[i].rows);
 		E[i](finalRect).copyTo(F[i]);
