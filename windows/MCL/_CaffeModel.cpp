@@ -268,11 +268,25 @@ cv::Rect2i GetRoiRect(cv::Rect2i& OriRect) {
 
 cv::Mat RotateMat(cv::Mat& OriMat, cv::Point2f BasePoint, double DegreeAngle, double scale) {
 	cv::Mat rot_mat = cv::getRotationMatrix2D(BasePoint, DegreeAngle, scale);
-	cv::Mat rot(cv::Size(OriMat.cols, OriMat.rows), OriMat.type(), cv::Scalar::all(0));
+	cv::Mat rot(cv::Size(OriMat.cols, OriMat.rows), CV_8UC3, cv::Scalar::all(0));
 	warpAffine(OriMat, rot, rot_mat, OriMat.size(), cv::INTER_CUBIC, cv::BORDER_CONSTANT, cv::Scalar::all(0));
 	return rot;
 }
 
+cv::Mat Resize4Times(cv::Mat OriMat, int Width = 0, int Height = 0)
+{
+	if (Width * Height == 0)
+	{
+		Width = OriMat.cols;
+		Height = OriMat.rows;
+		Width -= Width % 4;
+		Height -= Height % 4;
+	}
+	
+	cv::Mat resize_mat(cv::Size(Width, Height), CV_8UC3, cv::Scalar::all(0));
+	cv::resize(OriMat, resize_mat, cv::Size(Width, Height));
+	return resize_mat;
+}
 
 //APIs:
 FloatArray _CaffeModel::ExtractBitmapOutputs(std::vector<std::string> &imageData, const string &layerName, int DeviceId)
@@ -405,26 +419,15 @@ bool _CaffeModel::Alignment(cv::Mat &Ori, std::vector<float>landmerks, cv::Mat &
 	return true;
 }
 
-void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeModel *IPBbox, _CaffeModel *IPTs5, std::vector<cv::Mat> &F, const float *headpose)
+std::vector<cv::Mat> _CaffeModel::AlignStep1(std::vector<cv::Mat> B, std::vector<float> bbox, std::vector<float> headpose, std::vector<cv::Rect2i> &MarginRect)
 {
-	std::vector<cv::Mat> B(rect_A.size());
-	for (size_t i = 0; i < rect_A.size(); i++)
-	{
-		cv::Rect2i rect_B = GetRoiRect(rect_A[i]);
-		Ori(rect_B).copyTo(B[i]);
-	}
-	std::vector<string> IPBbox_layers;
-	IPBbox_layers.push_back("fc2");
-	IPBbox_layers.push_back("fc3");
-	std::vector<FloatArray> IPBbox_feature = IPBbox->ExtractMatOutputs(B, IPBbox_layers, 0);
-
-	const float* bbox = IPBbox_feature[0].Data;
-	headpose = IPBbox_feature[1].Data;
 	std::vector<cv::Mat> RotatedB(B.size());
 	std::vector<cv::Mat> C(B.size());
-	std::vector<cv::Rect2i> MarginRect(C.size());
-
-	for (int i = 0; i < B.size(); i++)
+	MarginRect = std::vector<cv::Rect2i>(C.size());
+#ifndef _DEBUG
+#pragma omp parallel for  
+#endif
+	for (int i = 0; i < (int)B.size(); i++)
 	{
 		cv::Rect2i base_rect(cvRound(bbox[4 * i + 0] * B[i].cols), cvRound(bbox[4 * i + 1] * B[i].rows), cvRound((bbox[4 * i + 2] - bbox[4 * i + 0]) * B[i].cols), cvRound((bbox[4 * i + 3] - bbox[4 * i + 1]) * B[i].rows));
 		cv::Point2f base_center((bbox[4 * i + 0] + bbox[4 * i + 2]) * B[i].cols / 2, (bbox[4 * i + 1] + bbox[4 * i + 3]) * B[i].rows / 2);
@@ -449,25 +452,35 @@ void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeMo
 
 		MarginRect[i] = cv::Rect2i(Margin_X, Margin_Y, Margin_Height, Margin_Height);
 		RotatedB[i](MarginRect[i]).copyTo(C[i]);
+		cv::Rect2i temp(0, 0, RotatedB[i].cols, RotatedB[i].rows);
+		RotatedB[i](temp).copyTo(B[i]);//check brondary!
+		//B[i] = Resize4Times(RotatedB[i]);
+		RotatedB[i].release();
+		C[i] = Resize4Times(C[i]);
 	}
+	return C;
+}
 
-	FloatArray IPTs5_feature = IPTs5->ExtractMatOutputs(C, "fc2", 0);
-	const float* pts5 = IPTs5_feature.Data;
-	std::vector<cv::Mat> D(C.size());
+std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector<cv::Size> size_C, std::vector<float> pts5, std::vector<cv::Rect2i> &MarginRect, int Width, int Height)
+{
+	std::vector<cv::Mat> D(B.size());
 	std::vector<cv::Mat> E(D.size());
-	F = std::vector<cv::Mat>(E.size());
-	for (size_t i = 0; i < C.size(); i++)
+	std::vector<cv::Mat> F = std::vector<cv::Mat>(E.size());
+#ifndef _DEBUG
+#pragma omp parallel for  
+#endif
+	for (int i = 0; i < (int)B.size(); i++)
 	{
-		cv::Point2f EyeCenter = ((pts5[10 * i + 0] + pts5[10 * i + 2]) / 2 * C[i].cols, (pts5[10 * i + 1] + pts5[10 * i + 3]) / 2 * C[i].rows);
-		cv::Point2f MouthCenter = ((pts5[10 * i + 6] + pts5[10 * i + 8]) / 2 * C[i].cols, (pts5[10 * i + 7] + pts5[10 * i + 9]) / 2 * C[i].rows);
-		cv::Point2f half_square(0.5f * C[i].cols, 0.35f *  C[i].rows);
+		cv::Point2f EyeCenter((pts5[10 * i + 0] + pts5[10 * i + 2]) / 2 * size_C[i].width, (pts5[10 * i + 1] + pts5[10 * i + 3]) / 2 * size_C[i].height);
+		cv::Point2f MouthCenter((pts5[10 * i + 6] + pts5[10 * i + 8]) / 2 * size_C[i].width, (pts5[10 * i + 7] + pts5[10 * i + 9]) / 2 * size_C[i].height);
+		cv::Point2f half_square(0.5f * size_C[i].width, 0.35f *  size_C[i].height);
 		float distance_x = EyeCenter.x - half_square.x;
 		float distance_y = EyeCenter.y - half_square.y;
 
 		float distance_me = sqrt(pow((MouthCenter.x - EyeCenter.x), 2) +
 			pow((MouthCenter.y - EyeCenter.y), 2));
 
-		float scale = distance_me / (C[i].rows * 0.4f);
+		float scale = distance_me / (size_C[i].height * 0.4f);
 
 		MarginRect[i].x += (int)distance_x;
 		MarginRect[i].y += (int)distance_y;
@@ -482,21 +495,24 @@ void _CaffeModel::Alignment(cv::Mat &Ori, std::vector<cv::Rect> rect_A, _CaffeMo
 		MarginRect[i].width = cvRound(MarginRect[i].width * scale);
 		MarginRect[i].height = cvRound(MarginRect[i].height * scale);
 
-		B[i](MarginRect[i]).copyTo(E[i]);
+		E[i] = cv::Mat (cv::Size(MarginRect[i].width, MarginRect[i].height), CV_8UC3, cv::Scalar::all(0));
+		cv::Rect src_roi(cv::max(MarginRect[i].x,0), cv::max(MarginRect[i].y, 0), ((MarginRect[i].x + MarginRect[i].width) <= B[i].cols ? MarginRect[i].width : (B[i].cols - MarginRect[i].x)), ((MarginRect[i].y + MarginRect[i].height) <= B[i].rows ? MarginRect[i].height : (B[i].rows - MarginRect[i].y)));
+		cv::Rect dsc_roi(MarginRect[i].x>=0?0:-1* MarginRect[i].x, MarginRect[i].y >= 0 ? 0 : -1 * MarginRect[i].y, ((MarginRect[i].x + MarginRect[i].width) <= B[i].cols ? MarginRect[i].width : (B[i].cols - MarginRect[i].x)), ((MarginRect[i].y + MarginRect[i].height) <= B[i].rows ? MarginRect[i].height : (B[i].rows - MarginRect[i].y)));
+		//cv::Mat  dsc = E[i](dsc_roi);
+		B[i](src_roi).convertTo(E[i], B[i].type(), 1, 0);
+		//B[i](MarginRect[i]).copyTo(E[i]);
 
-		cv::Rect finalRect(cvRound(1.0f / 14 * E[i].cols), 0, cvRound(12.0f / 14 * E[i].cols), E[i].rows);
+		cv::Rect finalRect(cvRound((Height - Width) * 1.0f / (2 * Height) * E[i].cols), 0, cvRound((2 * Width) * 1.0f / (2 * Height) * E[i].cols), E[i].rows);
 		E[i](finalRect).copyTo(F[i]);
-	}
-	for (size_t i = 0; i < rect_A.size(); i++)
-	{
-		B[i].release();
-		RotatedB[i].release();
-		C[i].release();
+		F[i] = Resize4Times(F[i], Width, Height);
+		//cv::imwrite("testf.jpg", F[0]);
+		//
 		D[i].release();
 		E[i].release();
 	}
-}
 
+	return F;
+}
 
 
 //Train Funtion:
