@@ -318,7 +318,12 @@ namespace CaffeSharp {
 			std::vector<cv::Rect2i> _MarginRect;
 			for (int i = 0; i < B->Length; i++)
 			{
+				//B[i]->Save("testB.jpg");
+				/*_B[i] = cv::Mat(B[i]->Width, B[i]->Height, CV_8UC3);*/
 				ConvertBitmapToMat(B[i], _B[i]);
+				/*int x = _B[i].channels();
+				cv::imwrite("test_B.jpg", _B[0]);
+				B[i]->Save("testB.jpg");*/
 				for (size_t j = 0; j < 4; j++)
 				{
 					_bbox[4 * i + j] = bbox[4 * i + j];
@@ -537,11 +542,19 @@ namespace CaffeSharp {
 		static int ConvertBitmapToMat(System::Drawing::Bitmap^ bmpImg, cv::Mat& cvImg)
 		{
 			int retVal = 0;
+			int width = bmpImg->Width - bmpImg->Width % 4;
+			int height = bmpImg->Height - bmpImg->Height % 4;
+			Drawing::Rectangle rc = Drawing::Rectangle(0, 0, width, height);
+
+			// resize image
+			Bitmap ^resizedBmp;
+			resizedBmp = gcnew Bitmap((Image ^)bmpImg, width, height);
+			resizedBmp = resizedBmp->Clone(rc, PixelFormat::Format24bppRgb);
 
 			//锁定Bitmap数据  
-			System::Drawing::Imaging::BitmapData^ bmpData = bmpImg->LockBits(
-				System::Drawing::Rectangle(0, 0, bmpImg->Width, bmpImg->Height),
-				System::Drawing::Imaging::ImageLockMode::ReadWrite, bmpImg->PixelFormat);
+			System::Drawing::Imaging::BitmapData^ bmpData = resizedBmp->LockBits(
+				System::Drawing::Rectangle(0, 0, resizedBmp->Width, resizedBmp->Height),
+				System::Drawing::Imaging::ImageLockMode::ReadWrite, resizedBmp->PixelFormat);
 
 			//若cvImg非空，则清空原有数据  
 			if (!cvImg.empty())
@@ -550,17 +563,17 @@ namespace CaffeSharp {
 			}
 
 			//将 bmpImg 的数据指针复制到 cvImg 中，不拷贝数据  
-			if (bmpImg->PixelFormat == System::Drawing::Imaging::PixelFormat::Format8bppIndexed)  // 灰度图像  
+			if (resizedBmp->PixelFormat == System::Drawing::Imaging::PixelFormat::Format8bppIndexed)  // 灰度图像  
 			{
-				cvImg = cv::Mat(bmpImg->Height, bmpImg->Width, CV_8UC1, (char*)bmpData->Scan0.ToPointer());
+				cvImg = cv::Mat(resizedBmp->Height, resizedBmp->Width, CV_8UC1, (char*)bmpData->Scan0.ToPointer());
 			}
-			else if (bmpImg->PixelFormat == System::Drawing::Imaging::PixelFormat::Format24bppRgb)   // 彩色图像  
+			else if (resizedBmp->PixelFormat == System::Drawing::Imaging::PixelFormat::Format24bppRgb)   // 彩色图像  
 			{
-				cvImg = cv::Mat(bmpImg->Height, bmpImg->Width, CV_8UC3, (char*)bmpData->Scan0.ToPointer());
+				cvImg = cv::Mat(resizedBmp->Height, resizedBmp->Width, CV_8UC3, (char*)bmpData->Scan0.ToPointer());
 			}
-			else if (bmpImg->PixelFormat == System::Drawing::Imaging::PixelFormat::Format32bppArgb)	//RGBA
+			else if (resizedBmp->PixelFormat == System::Drawing::Imaging::PixelFormat::Format32bppArgb)	//RGBA
 			{
-				cvImg = cv::Mat(bmpImg->Height, bmpImg->Width, CV_8UC4, (char*)bmpData->Scan0.ToPointer());
+				cvImg = cv::Mat(resizedBmp->Height, resizedBmp->Width, CV_8UC4, (char*)bmpData->Scan0.ToPointer());
 			}
 			else
 			{
@@ -568,7 +581,10 @@ namespace CaffeSharp {
 			}
 
 			//解锁Bitmap数据  
-			bmpImg->UnlockBits(bmpData);
+			resizedBmp->UnlockBits(bmpData);
+
+			/*
+			bmpImg = resizedBmp->Clone(rc, PixelFormat::Format24bppRgb);*/
 
 			return (retVal);
 		}

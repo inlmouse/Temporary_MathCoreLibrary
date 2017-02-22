@@ -84,5 +84,10 @@ private:
 	void EvaluateBitmap(caffe::Net<float>* net, std::vector<std::string> imageData, int DeviceId);
 	void EvaluateVector(caffe::Net<float>* net, std::vector<float> vectorData, int DeviceId);
 	void EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image, int DeviceId);
+
+	//Image Helper functions:
+	static cv::Rect2i GetRoiRect(cv::Rect2i& OriRect);
+	static cv::Mat RotateMat(cv::Mat& OriMat, cv::Point2f BasePoint, double DegreeAngle, double scale);
+	static cv::Mat Resize4Times(cv::Mat OriMat, int Width = 0, int Height = 0);
 };
 

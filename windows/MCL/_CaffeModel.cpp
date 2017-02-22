@@ -256,7 +256,7 @@ void _CaffeModel::EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image
 }
 
 //Image Helper functions:
-cv::Rect2i GetRoiRect(cv::Rect2i& OriRect) {
+cv::Rect2i _CaffeModel::GetRoiRect(cv::Rect2i& OriRect) {
 	cv::Rect2i rect;
 	rect.x = cvRound(OriRect.x - OriRect.width * 0.2);
 	rect.y = cvRound(OriRect.y - OriRect.height * 0.2);
@@ -266,14 +266,14 @@ cv::Rect2i GetRoiRect(cv::Rect2i& OriRect) {
 	return rect;
 }
 
-cv::Mat RotateMat(cv::Mat& OriMat, cv::Point2f BasePoint, double DegreeAngle, double scale) {
+cv::Mat _CaffeModel::RotateMat(cv::Mat& OriMat, cv::Point2f BasePoint, double DegreeAngle, double scale) {
 	cv::Mat rot_mat = cv::getRotationMatrix2D(BasePoint, DegreeAngle, scale);
 	cv::Mat rot(cv::Size(OriMat.cols, OriMat.rows), CV_8UC3, cv::Scalar::all(0));
 	warpAffine(OriMat, rot, rot_mat, OriMat.size(), cv::INTER_CUBIC, cv::BORDER_CONSTANT, cv::Scalar::all(0));
 	return rot;
 }
 
-cv::Mat Resize4Times(cv::Mat OriMat, int Width = 0, int Height = 0)
+cv::Mat _CaffeModel::Resize4Times(cv::Mat OriMat, int Width, int Height)
 {
 	if (Width * Height == 0)
 	{
@@ -485,7 +485,7 @@ std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector
 		MarginRect[i].x += (int)distance_x;
 		MarginRect[i].y += (int)distance_y;
 
-		double tan = (pts5[10 * i + 1] - pts5[10 * i + 3]) / (pts5[10 * i + 0] + pts5[10 * i + 2]);
+		double tan = (pts5[10 * i + 1] - pts5[10 * i + 3]) / (pts5[10 * i + 0] + pts5[10 * i + 2]);//(EyeCenter.x - MouthCenter.x) / (EyeCenter.y - MouthCenter.y);
 		double arctan = atan(tan) * 180 / CV_PI;
 		D[i] = RotateMat(B[i], cv::Point2f(half_square.x + MarginRect[i].x, half_square.y + MarginRect[i].y), -1 * arctan, 1.0);
 		//*******

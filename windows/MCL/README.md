@@ -1,7 +1,7 @@
 #MCL(MathCoreLibrary)
 This project is the .Net interface of MathCoreLibrary which is written by C++/CLI. In order to compile this project, you need set *Common language Runtime Support* in your Visual Studio.
 
-**The current version is 0.8.6**
+**The current version is 0.8.9**
 ##Interfaces--CaffeModel
 
 ###Public Member Variables
@@ -21,6 +21,8 @@ This project is the .Net interface of MathCoreLibrary which is written by C++/CL
 |float|CosineDistanceProb (static)|float[] *feature1*| float[] *feature2*|--|Return the Cosine Distance between the vector *feature1* and *feature2*. |
 |bool |Alignment (static)|Bitmap *imgData*| float[] *landmark*| Bitmap *dstImg*|Align the *imgData* to *dstImg* accroding the given *landmark*. Return true if successful.|
 |bool[] |Alignment (static)|Bitmap[] *imgDatas*| float[] *landmarks*| Bitmap[] *dstImgs*|Align the *imgDatas* to *dstImgs* accroding the given *landmarks*. Return true if successful.|
+|Bitmap[]| Align_Step1(static)| Bitmap[] *B* |Rectangle[] *MarginRect*|float[] *bbox, headpose*|The first step of Face Alignment.|
+|Bitmap[]| Align_Step2(static)| Bitmap[] *B, C* , float[] *ipts5*|Rectangle[] *MarginRect*|int *Width, Height*|The second step of Face Alignment.|
 |int | GetInputImageWidth /GetInputImageHeight /GetInputImageChannels /GetInputImageBatchsize| --|--|--|Get the Shape of the input MomoryData Layer.|
 |float[] |ExtractBitmapOutputs |Bitmap[] *imgDatas*| string *layerName*| int *DeviceId*|Extract the features of *imgDatas* in *layerName* on device *DeviceId*|
 |float[][] |ExtractBitmapOutputs |Bitmap[] *imgDatas*| string[] *layerNames*| int *DeviceId*|Extract the features of *imgDatas* in *layerNames* on device *DeviceId*|
@@ -46,3 +48,12 @@ This project is the .Net interface of MathCoreLibrary which is written by C++/CL
 
 2017-02-03 23:26:18
 - Version0.8.6: 添加Python Layer支持
+
+2017-02-12 
+- Version0.8.7: 回滚NCCL问题，现阶段仍使用P2P Access
+
+2017-02-17
+- Version0.8.8: 支持简单加密prototxt，对称密钥加密**待替换**
+
+2017-02-22
+- Version0.8.9: 添加两步精细对齐方法，现阶段兼容原模型
