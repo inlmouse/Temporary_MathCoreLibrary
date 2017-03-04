@@ -268,7 +268,7 @@ static void get_net(MEX_ARGS) {
   else {
     mxERROR("Unknown phase");
   }
-  shared_ptr<Net<float> > net(new caffe::Net<float>(model_file, phase));
+  shared_ptr<Net<float> > net(new caffe::Net<float>(model_file, phase, false));
   nets_.push_back(net);
   plhs[0] = ptr_to_handle<Net<float> >(net.get());
   mxFree(model_file);

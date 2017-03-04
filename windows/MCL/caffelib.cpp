@@ -318,11 +318,8 @@ namespace CaffeSharp {
 			std::vector<cv::Rect2i> _MarginRect;
 			for (int i = 0; i < B->Length; i++)
 			{
-				//B[i]->Save("testB.jpg");
-				/*_B[i] = cv::Mat(B[i]->Width, B[i]->Height, CV_8UC3);*/
 				ConvertBitmapToMat(B[i], _B[i]);
-				/*int x = _B[i].channels();
-				cv::imwrite("test_B.jpg", _B[0]);
+				/*cv::imwrite("test_B.jpg", _B[0]);
 				B[i]->Save("testB.jpg");*/
 				for (size_t j = 0; j < 4; j++)
 				{
@@ -333,8 +330,9 @@ namespace CaffeSharp {
 					_headpose[3 * i + j] = headpose[3 * i + j];
 				}
 			}
-			
+			//Console::WriteLine("before native");
 			std::vector<cv::Mat> _C = _CaffeModel::AlignStep1(_B, _bbox, _headpose, _MarginRect);
+			//Console::WriteLine("after native");
 			//cv::imwrite( "test_C.jpg", _C[0]);
 			/*MarginRect = gcnew array<Drawing::Rectangle>(B->Length);*/
 			array<Bitmap^>^ C = gcnew array<Bitmap^>(B->Length);
@@ -352,8 +350,10 @@ namespace CaffeSharp {
 				{
 					cvtColor(_B[i], _B[i], CV_BGRA2BGR);
 				}
+				//Console::WriteLine("defore trans");
 				CopyMatToBitmap(_C[i], C[i]);
 				CopyMatToBitmap(_B[i], B[i]);
+				//Console::WriteLine("after trans");
 				MarginRect[i] = Drawing::Rectangle(_MarginRect[i].x, _MarginRect[i].y, _MarginRect[i].width, _MarginRect[i].height);
 				_B[i].release();
 				_C[i].release();
