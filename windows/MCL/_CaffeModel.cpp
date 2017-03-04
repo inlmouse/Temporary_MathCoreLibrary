@@ -421,9 +421,11 @@ bool _CaffeModel::Alignment(cv::Mat &Ori, std::vector<float>landmerks, cv::Mat &
 
 std::vector<cv::Mat> _CaffeModel::AlignStep1(std::vector<cv::Mat> B, std::vector<float> bbox, std::vector<float> headpose, std::vector<cv::Rect2i> &MarginRect)
 {
+	//std::cout << "before malloc" << std::endl;
 	std::vector<cv::Mat> RotatedB(B.size());
 	std::vector<cv::Mat> C(B.size());
 	MarginRect = std::vector<cv::Rect2i>(C.size());
+	//std::cout << "after malloc" << std::endl;
 #ifndef _DEBUG
 #pragma omp parallel for  
 #endif
@@ -434,8 +436,9 @@ std::vector<cv::Mat> _CaffeModel::AlignStep1(std::vector<cv::Mat> B, std::vector
 
 		double angeltheta = headpose[3 * i + 2] * 90;
 		double arctheta = angeltheta * CV_PI / 180;
-
+		//std::cout << "before rotate_B" << std::endl;
 		RotatedB[i] = RotateMat(B[i], base_center, -1 * angeltheta, 1.0);
+		//std::cout << "after rotate_B" << std::endl;
 		//*****
 		int delta = cvRound(sin(arctheta) * base_rect.height / 2);
 		base_rect.x += delta;
@@ -449,14 +452,17 @@ std::vector<cv::Mat> _CaffeModel::AlignStep1(std::vector<cv::Mat> B, std::vector
 		int Margin_Height = cvRound(base_rect.height * 1.2f);
 		int Margin_X = cvRound(base_center.x - Margin_Height / 2);
 		int Margin_Y = cvRound(base_center.y - Margin_Height / 2);
-
+		//std::cout << "before copy_to_C" << std::endl;
 		MarginRect[i] = cv::Rect2i(Margin_X, Margin_Y, Margin_Height, Margin_Height);
 		RotatedB[i](MarginRect[i]).copyTo(C[i]);
+		//std::cout << "after copy_to_C" << std::endl;
 		cv::Rect2i temp(0, 0, RotatedB[i].cols, RotatedB[i].rows);
 		RotatedB[i](temp).copyTo(B[i]);//check brondary!
+		//std::cout << "after copy_to_B" << std::endl;
 		//B[i] = Resize4Times(RotatedB[i]);
 		RotatedB[i].release();
 		C[i] = Resize4Times(C[i]);
+		//std::cout << "after resize" << std::endl;
 	}
 	return C;
 }
