@@ -178,7 +178,7 @@ void _CaffeModel::EvaluateFile(caffe::Net<float>* net, std::vector<std::string> 
 	std::vector<int> labels;
 	for (int i = 0; i < imageFile.size(); i++)
 	{
-		cv::Mat img = cv::imread(imageFile[i]);
+		cv::Mat img = cv::imread(imageFile[i], CV_LOAD_IMAGE_GRAYSCALE);//
 		resize(img, img, cv::Size(), double(width) / img.cols, double(height) / img.rows, CV_INTER_CUBIC);
 		input_mats.push_back(img);
 		labels.push_back(0);

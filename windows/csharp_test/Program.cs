@@ -17,9 +17,11 @@ namespace csharp_test
     {
         static void Main(string[] args)
         {
-            SortedList<int, float> results = lfw_fe("center_loss_ms.caffemodel"/*@"D:\Research\FaceRecognition\snapshot\GlasssixNet_train_iter_30000.caffemodel"*/,
-                "center_loss_ms.prototxt", "lfw_pairs.txt", @"C:\Users\BALTHASAR\Desktop\lfw-aligned\");
-            float ACC = lfw_acc(results);
+            SortedList<int, float> results = lfw_fe(@"D:\Research\FaceRecognition\snapshot\GlasssixNet_train_iter_40000.caffemodel",
+                "GlasssixNet.prototxt", "lfw_pairs.txt", @"D:\Alignment_lfw_Equalized\");
+            float best_th;
+            float ACC = lfw_acc(results, out best_th);
+            lfw_error(best_th, results);
             Console.WriteLine(ACC);
         }
 
@@ -164,8 +166,8 @@ namespace csharp_test
                 {
                     DirectoryInfo child=new DirectoryInfo(imgDir+sArray[0]);
                     FileInfo[] file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
-                    float[] a = fe.ExtractBitmapOutputs(new[] { new Bitmap(file[Convert.ToInt32(sArray[1]) - 1].FullName) }, "eltmax_fc5", 0);
-                    float[] b = fe.ExtractBitmapOutputs(new[] { new Bitmap(file[Convert.ToInt32(sArray[2]) - 1].FullName) }, "eltmax_fc5", 0);
+                    float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "fc5", 0);
+                    float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[2]) - 1].FullName }, "fc5", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
                     results.Add(label,confidency);
                 }
@@ -173,11 +175,11 @@ namespace csharp_test
                 {
                     DirectoryInfo child = new DirectoryInfo(imgDir + sArray[0]);
                     FileInfo[] file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
-                    float[] a = fe.ExtractBitmapOutputs(new[] { new Bitmap(file[Convert.ToInt32(sArray[1]) - 1].FullName)  }, "eltmax_fc5", 0);
+                    float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "fc5", 0);
                     //
                     child = new DirectoryInfo(imgDir + sArray[2]);
                     file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
-                    float[] b = fe.ExtractBitmapOutputs(new[] { new Bitmap(file[Convert.ToInt32(sArray[3]) - 1].FullName)  }, "eltmax_fc5", 0);
+                    float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[3]) - 1].FullName }, "fc5", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
                     results.Add(-1* label, confidency);
                 }
@@ -187,10 +189,10 @@ namespace csharp_test
             return results;
         }
 
-        static float lfw_acc(SortedList<int, float> s)
+        static float lfw_acc(SortedList<int, float> s, out float best_th)
         {
             float best_acc = 0;
-            float best_th = -1;
+            best_th = -1;
             for (float i = -1; i <= 1; i=i+0.01f)
             {
                 int count = 0;
@@ -200,7 +202,7 @@ namespace csharp_test
                     {
                         count++;
                     }
-                    if (s.Keys[j] > 0 && s.Values[j] > i)
+                    else if (s.Keys[j] > 0 && s.Values[j] > i)
                     {
                         count++;
                     }
@@ -213,6 +215,26 @@ namespace csharp_test
             }
 
             return best_acc;
+        }
+
+        static void lfw_error(float best_th, SortedList<int, float> s)
+        {
+            int count = 0;
+            for (int j = 0; j < s.Count; j++)
+            {
+                if (s.Keys[j] < 0 && s.Values[j] <= best_th)
+                {
+                    count++;
+                }
+                else if (s.Keys[j] > 0 && s.Values[j] > best_th)
+                {
+                    count++;
+                }
+                else
+                {
+                    Console.WriteLine(s.Keys[j] + " " + s.Values[j]);
+                }
+            }
         }
 
         public static Bitmap KiCut(Bitmap b, int StartX, int StartY, int iWidth, int iHeight)
