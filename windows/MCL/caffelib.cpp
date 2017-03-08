@@ -89,6 +89,10 @@ namespace CaffeSharp {
 			m_net = NULL;
 		}
 
+		void GetUsefulPart(String ^savepath)
+		{
+			m_net->GetUsefulPart(TO_NATIVE_STRING(savepath));
+		}
 
 		int GetInputImageWidth()
 		{
