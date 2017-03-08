@@ -166,8 +166,8 @@ namespace csharp_test
                 {
                     DirectoryInfo child=new DirectoryInfo(imgDir+sArray[0]);
                     FileInfo[] file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
-                    float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "fc5", 0);
-                    float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[2]) - 1].FullName }, "fc5", 0);
+                    float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "eltmax_fc5", 0);
+                    float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[2]) - 1].FullName }, "eltmax_fc5", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
                     results.Add(label,confidency);
                 }
@@ -175,11 +175,11 @@ namespace csharp_test
                 {
                     DirectoryInfo child = new DirectoryInfo(imgDir + sArray[0]);
                     FileInfo[] file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
-                    float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "fc5", 0);
+                    float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "eltmax_fc5", 0);
                     //
                     child = new DirectoryInfo(imgDir + sArray[2]);
                     file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
-                    float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[3]) - 1].FullName }, "fc5", 0);
+                    float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[3]) - 1].FullName }, "eltmax_fc5", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
                     results.Add(-1* label, confidency);
                 }

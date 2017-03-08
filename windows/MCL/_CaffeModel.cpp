@@ -683,3 +683,10 @@ bool _CaffeModel::Train(std::string solverpath)
 		return false;
 	}
 }
+
+void _CaffeModel::GetUsefulPart(std::string savepath)
+{
+	NetParameter param;
+	_net->ToProto(&param, false);
+	WriteProtoToBinaryFile(param, savepath);
+}

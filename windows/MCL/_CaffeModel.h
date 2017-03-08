@@ -79,6 +79,8 @@ public:
 	static std::vector<cv::Mat> AlignStep2(std::vector<cv::Mat> B, std::vector<cv::Size> size_C, std::vector<float> pts5, std::vector<cv::Rect2i> &MarginRect, int ritow, int ritoh);
 	static bool Train(std::string solverpath);
 
+	void GetUsefulPart(std::string savepath);
+
 private:
 	void EvaluateFile(caffe::Net<float>* net, std::vector<std::string> imageFile, int DeviceId);
 	void EvaluateBitmap(caffe::Net<float>* net, std::vector<std::string> imageData, int DeviceId);
