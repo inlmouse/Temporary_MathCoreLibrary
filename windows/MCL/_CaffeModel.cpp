@@ -174,11 +174,13 @@ void _CaffeModel::EvaluateFile(caffe::Net<float>* net, std::vector<std::string> 
 	_CaffeModel::SetDevice(DeviceId);
 	int height = memory_data_layer->height();
 	int width = memory_data_layer->width();
+	int channel = memory_data_layer->channels();
 	std::vector<cv::Mat> input_mats;
 	std::vector<int> labels;
+	int flag = (channel == 1) ? 0 : 1;
 	for (int i = 0; i < imageFile.size(); i++)
 	{
-		cv::Mat img = cv::imread(imageFile[i], CV_LOAD_IMAGE_GRAYSCALE);//
+		cv::Mat img = cv::imread(imageFile[i], flag);
 		resize(img, img, cv::Size(), double(width) / img.cols, double(height) / img.rows, CV_INTER_CUBIC);
 		input_mats.push_back(img);
 		labels.push_back(0);
@@ -197,13 +199,35 @@ void _CaffeModel::EvaluateBitmap(caffe::Net<float>* net, std::vector<std::string
 	for (int i = 0; i < imageData.size(); i++)
 	{
 		Datum datum;
-		datum.set_channels(3);
+		datum.set_channels(memory_data_layer->channels());
 		datum.set_height(memory_data_layer->height());
 		datum.set_width(memory_data_layer->width());
 		datum.set_label(0);
 		datum.clear_data();
 		datum.clear_float_data();
 		datum.set_data(imageData[i]);
+		datums.push_back(datum);
+	}
+	memory_data_layer->set_batch_size(datums.size());
+	memory_data_layer->AddDatumVector(datums);
+	net->Forward(&loss);
+}
+
+void _CaffeModel::EvaluateByte(caffe::Net<float>* net, std::vector<std::string> byteData, int DeviceId)
+{
+	_CaffeModel::SetDevice(DeviceId);
+	std::vector<Datum> datums;
+	float loss = 0.0;
+	for (int i = 0; i < byteData.size(); i++)
+	{
+		Datum datum;
+		datum.set_channels(memory_data_layer->channels());
+		datum.set_height(memory_data_layer->height());
+		datum.set_width(memory_data_layer->width());
+		datum.set_label(0);
+		datum.clear_data();
+		datum.clear_float_data();
+		datum.set_data(byteData[i]);
 		datums.push_back(datum);
 	}
 	memory_data_layer->set_batch_size(datums.size());
@@ -299,6 +323,25 @@ FloatArray _CaffeModel::ExtractBitmapOutputs(std::vector<std::string> &imageData
 vector<FloatArray> _CaffeModel::ExtractBitmapOutputs(std::vector<std::string> &imageData, const vector<string> &layerNames, int DeviceId)
 {
 	EvaluateBitmap(_net, imageData, DeviceId);
+	vector<FloatArray> results;
+	for (auto& name : layerNames)
+	{
+		auto blob = _net->blob_by_name(name);
+		results.push_back(FloatArray(blob->cpu_data(), blob->count()));
+	}
+	return results;
+}
+
+FloatArray _CaffeModel::ExtractByteOutputs(std::vector<std::string>& byteData, const std::string& layerName, int DeviceId)
+{
+	EvaluateByte(_net, byteData, DeviceId);
+	auto blob = _net->blob_by_name(layerName);
+	return FloatArray(blob->cpu_data(), blob->count());
+}
+
+std::vector<FloatArray> _CaffeModel::ExtractByteOutputs(std::vector<std::string>& byteData, const std::vector<std::string>& layerNames, int DeviceId)
+{
+	EvaluateByte(_net, byteData, DeviceId);
 	vector<FloatArray> results;
 	for (auto& name : layerNames)
 	{

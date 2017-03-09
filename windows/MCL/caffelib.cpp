@@ -17,7 +17,7 @@ using namespace System::Drawing::Imaging;
   pin_ptr<float> pma = &m_array[0]; \
   memcpy(pma, n_array.Data, n_array.Size * sizeof(float));
 
-#define Version "0.8.9"
+#define Version "0.8.10"
 #define UpdateLog "\
 Version0.5.1: 全面支持CUDA8.0和CUDNNv5；同时.NetFramework升级到4.5.2，VC++版本提升至v140；舍弃对OpenCV2.4的支持\n\
 Version0.5.2: 实现弱鸡C++版本的MTCNN，但是在CUDA8.0上有未知原因bug\n\
@@ -27,7 +27,8 @@ Version0.8.5: 添加NVIDIA NCCL多GPU并行通讯支持，支持CUDNN5.1\n\
 Version0.8.6: 添加Python Layer支持\n\
 Version0.8.7: 修复NCCL问题，现阶段仍使用P2P Access\n\
 Version0.8.8: 支持加密prototxt\n\
-Version0.8.9: 添加两步精细对齐函数，现阶段兼容原模型"
+Version0.8.9: 添加两步精细对齐函数，现阶段兼容原模型\n\
+Version0.8.10: 添加Byte数组格式图像输入支持"
 
 namespace CaffeSharp {
 	
@@ -146,6 +147,40 @@ namespace CaffeSharp {
 			return outputs;
 		}
 
+		array<float>^ ExtractByteOutputs(array<array<Byte>^>^ byteDatas, String^ layerName, int DeviceId)
+		{
+			std::vector<std::string> datum_strings;
+			for (int i = 0; i < byteDatas->Length; i++)
+			{
+				datum_strings.push_back(ConvertToDatum(byteDatas[i]));
+			}
+
+			FloatArray intermediate = m_net->ExtractByteOutputs(datum_strings, TO_NATIVE_STRING(layerName), DeviceId);
+			MARSHAL_ARRAY(intermediate, outputs)
+				return outputs;
+		}
+
+		array<array<float>^>^ ExtractByteOutputs(array<array<Byte>^>^ byteDatas, array<String^>^ layerNames, int DeviceId)
+		{
+			std::vector<std::string> datum_strings;
+			for (int i = 0; i < byteDatas->Length; i++)
+			{
+				datum_strings.push_back(ConvertToDatum(byteDatas[i]));
+			}
+
+			std::vector<std::string> names;
+			for each(String^ name in layerNames)
+				names.push_back(TO_NATIVE_STRING(name));
+			std::vector<FloatArray> intermediates = m_net->ExtractByteOutputs(datum_strings, names, DeviceId);
+			auto outputs = gcnew array<array<float>^>(static_cast<int>(names.size()));
+			for (int i = 0; i < names.size(); ++i)
+			{
+				auto intermediate = intermediates[i];
+				MARSHAL_ARRAY(intermediate, values)
+					outputs[i] = values;
+			}
+			return outputs;
+		}
 
 		array<float>^ ExtractFileOutputs(array<String^>^ imageFiles, String^ layerName, int DeviceId)
 		{
@@ -591,6 +626,37 @@ namespace CaffeSharp {
 			bmpImg = resizedBmp->Clone(rc, PixelFormat::Format24bppRgb);*/
 
 			return (retVal);
+		}
+
+		std::string ConvertToDatum(array<Byte>^ bytedata)
+		{
+			std::string datum_string;
+
+			int width = m_net->GetInputImageWidth();
+			int height = m_net->GetInputImageHeight();
+			int channel = m_net->GetInputImageChannels();
+			if (bytedata->Length!= channel * width * height)
+			{
+				return NULL;
+			}
+			else
+			{
+				datum_string.resize(channel * width * height);
+				char *buff = &datum_string[0];
+				int Stride = width;
+				for (int c = 0; c < channel; ++c)
+				{
+					for (int h = 0; h < height; ++h)
+					{
+						int line_offset = h * Stride + c;
+						for (int w = 0; w < width; ++w)
+						{
+							*buff++ = Convert::ToChar(bytedata[line_offset + w * channel]);
+						}
+					}
+				}
+				return datum_string;
+			}
 		}
 
 		std::string ConvertToDatum(Bitmap ^imgData)

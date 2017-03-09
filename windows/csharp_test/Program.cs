@@ -17,6 +17,8 @@ namespace csharp_test
     {
         static void Main(string[] args)
         {
+            //CaffeModel temp=new CaffeModel("GlasssixNet_fine.prototxt", @"D:\Research\FaceRecognition\snapshot\GlasssixNet_train_iter_40000_977.caffemodel");
+            //temp.GetUsefulPart(@"D:\Research\FaceRecognition\snapshot\9777usefulpart.caffemodel");
             SortedList<int, float> results = lfw_fe(@"D:\Research\FaceRecognition\snapshot\GlasssixNet_train_iter_40000.caffemodel",
                 "GlasssixNet.prototxt", "lfw_pairs.txt", @"D:\Alignment_lfw_Equalized\");
             float best_th;
@@ -169,9 +171,9 @@ namespace csharp_test
                     float[] a = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[1]) - 1].FullName }, "eltmax_fc5", 0);
                     float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[2]) - 1].FullName }, "eltmax_fc5", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
-                    results.Add(label,confidency);
+                    results.Add(label, confidency);
                 }
-                if (sArray.Length==4)
+                if (sArray.Length == 4)
                 {
                     DirectoryInfo child = new DirectoryInfo(imgDir + sArray[0]);
                     FileInfo[] file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
@@ -181,7 +183,7 @@ namespace csharp_test
                     file = child.GetFiles("*.jpg", SearchOption.AllDirectories);
                     float[] b = fe.ExtractFileOutputs(new[] { file[Convert.ToInt32(sArray[3]) - 1].FullName }, "eltmax_fc5", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
-                    results.Add(-1* label, confidency);
+                    results.Add(-1 * label, confidency);
                 }
                 Console.WriteLine(label);
                 label++;
