@@ -665,6 +665,7 @@ namespace CaffeSharp {
 
 			int width = m_net->GetInputImageWidth();
 			int height = m_net->GetInputImageHeight();
+			int channel = m_net->GetInputImageChannels();
 
 			Drawing::Rectangle rc = Drawing::Rectangle(0, 0, width, height);
 
@@ -672,28 +673,42 @@ namespace CaffeSharp {
 			Bitmap ^resizedBmp;
 			if (width == imgData->Width && height == imgData->Height)
 			{
-				resizedBmp = imgData->Clone(rc, PixelFormat::Format24bppRgb);
+				if (channel==1)
+				{
+					resizedBmp = imgData->Clone(rc, PixelFormat::Format8bppIndexed);
+				}
+				if (channel==3)
+				{
+					resizedBmp = imgData->Clone(rc, PixelFormat::Format24bppRgb);
+				}
 			}
 			else
 			{
 				resizedBmp = gcnew Bitmap((Image ^)imgData, width, height);
-				resizedBmp = resizedBmp->Clone(rc, PixelFormat::Format24bppRgb);
+				if (channel == 1)
+				{
+					resizedBmp = imgData->Clone(rc, PixelFormat::Format8bppIndexed);
+				}
+				if (channel == 3)
+				{
+					resizedBmp = imgData->Clone(rc, PixelFormat::Format24bppRgb);
+				}
 			}
 			// get image data block
 			BitmapData ^bmpData = resizedBmp->LockBits(rc, ImageLockMode::ReadOnly, resizedBmp->PixelFormat);
 			pin_ptr<char> bmpBuffer = (char *)bmpData->Scan0.ToPointer();
 
 			// prepare string buffer to call Caffe model
-			datum_string.resize(3 * width * height);
+			datum_string.resize(channel * width * height);
 			char *buff = &datum_string[0];
-			for (int c = 0; c < 3; ++c)
+			for (int c = 0; c < channel; ++c)
 			{
 				for (int h = 0; h < height; ++h)
 				{
 					int line_offset = h * bmpData->Stride + c;
 					for (int w = 0; w < width; ++w)
 					{
-						*buff++ = bmpBuffer[line_offset + w * 3];
+						*buff++ = bmpBuffer[line_offset + w * channel];
 					}
 				}
 			}
