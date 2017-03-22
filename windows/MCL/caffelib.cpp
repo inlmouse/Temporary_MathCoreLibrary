@@ -147,7 +147,7 @@ namespace CaffeSharp {
 			return outputs;
 		}
 
-		array<float>^ ExtractByteOutputs(array<array<Byte>^>^ byteDatas, String^ layerName, int DeviceId)
+		/*array<float>^ ExtractByteOutputs(array<array<Byte>^>^ byteDatas, String^ layerName, int DeviceId)
 		{
 			std::vector<std::string> datum_strings;
 			for (int i = 0; i < byteDatas->Length; i++)
@@ -180,7 +180,7 @@ namespace CaffeSharp {
 					outputs[i] = values;
 			}
 			return outputs;
-		}
+		}*/
 
 		array<float>^ ExtractFileOutputs(array<String^>^ imageFiles, String^ layerName, int DeviceId)
 		{
@@ -628,7 +628,7 @@ namespace CaffeSharp {
 			return (retVal);
 		}
 
-		std::string ConvertToDatum(array<Byte>^ bytedata)
+		/*std::string ConvertToDatum(array<Byte>^ bytedata)
 		{
 			std::string datum_string;
 
@@ -657,7 +657,7 @@ namespace CaffeSharp {
 				}
 				return datum_string;
 			}
-		}
+		}*/
 
 		std::string ConvertToDatum(Bitmap ^imgData)
 		{
@@ -685,13 +685,13 @@ namespace CaffeSharp {
 			else
 			{
 				resizedBmp = gcnew Bitmap((Image ^)imgData, width, height);
-				if (channel == 1)
+				if (channel==1)
 				{
-					resizedBmp = imgData->Clone(rc, PixelFormat::Format8bppIndexed);
+					resizedBmp = resizedBmp->Clone(rc, PixelFormat::Format8bppIndexed);
 				}
-				if (channel == 3)
+				if (channel==3)
 				{
-					resizedBmp = imgData->Clone(rc, PixelFormat::Format24bppRgb);
+					resizedBmp = resizedBmp->Clone(rc, PixelFormat::Format24bppRgb);
 				}
 			}
 			// get image data block
@@ -716,8 +716,6 @@ namespace CaffeSharp {
 
 			return datum_string;
 		}
-
-
 
 		static double innerproduct(array<float>^ feature1, array<float>^ feature2)
 		{

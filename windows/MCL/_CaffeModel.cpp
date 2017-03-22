@@ -522,14 +522,14 @@ std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector
 	{
 		cv::Point2f EyeCenter((pts5[10 * i + 0] + pts5[10 * i + 2]) / 2 * size_C[i].width, (pts5[10 * i + 1] + pts5[10 * i + 3]) / 2 * size_C[i].height);
 		cv::Point2f MouthCenter((pts5[10 * i + 6] + pts5[10 * i + 8]) / 2 * size_C[i].width, (pts5[10 * i + 7] + pts5[10 * i + 9]) / 2 * size_C[i].height);
-		cv::Point2f half_square(0.5f * size_C[i].width, 0.35f *  size_C[i].height);
+		cv::Point2f half_square(0.5f * size_C[i].width, 0.25f *  size_C[i].height);
 		float distance_x = EyeCenter.x - half_square.x;
 		float distance_y = EyeCenter.y - half_square.y;
 
 		float distance_me = sqrt(pow((MouthCenter.x - EyeCenter.x), 2) +
 			pow((MouthCenter.y - EyeCenter.y), 2));
 
-		float scale = distance_me / (size_C[i].height * 0.4f);
+		float scale = distance_me / (size_C[i].height * 0.5f);
 
 		MarginRect[i].x += (int)distance_x;
 		MarginRect[i].y += (int)distance_y;
@@ -540,7 +540,7 @@ std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector
 		//*******
 
 		MarginRect[i].x = MarginRect[i].x + cvRound((1 - scale) * MarginRect[i].width * 0.5f);
-		MarginRect[i].y = MarginRect[i].y + cvRound((1 - scale) * MarginRect[i].height * 0.35f);
+		MarginRect[i].y = MarginRect[i].y + cvRound((1 - scale) * MarginRect[i].height * 0.25f);
 		MarginRect[i].width = cvRound(MarginRect[i].width * scale);
 		MarginRect[i].height = cvRound(MarginRect[i].height * scale);
 
@@ -552,6 +552,7 @@ std::vector<cv::Mat> _CaffeModel::AlignStep2(std::vector<cv::Mat> B, std::vector
 		//B[i](MarginRect[i]).copyTo(E[i]);
 
 		cv::Rect finalRect(cvRound((Height - Width) * 1.0f / (2 * Height) * E[i].cols), 0, cvRound((2 * Width) * 1.0f / (2 * Height) * E[i].cols), E[i].rows);
+		//Rectangle final = new Rectangle(Convert.ToInt32(0.0f / 14 * F.Width), 0, Convert.ToInt32(14.0f / 14 * F.Width), F.Height);
 		E[i](finalRect).copyTo(F[i]);
 		F[i] = Resize4Times(F[i], Width, Height);
 		//cv::imwrite("testf.jpg", F[0]);
