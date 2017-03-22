@@ -83,6 +83,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "model_encryption", "model_e
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csharp_test", "csharp_test\csharp_test.csproj", "{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mtcnn", "MTCNN\mtcnn.vcxproj", "{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{48E1BAE6-F9E1-4E9A-A3A1-75C1B2D1B12E} = {48E1BAE6-F9E1-4E9A-A3A1-75C1B2D1B12E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -285,6 +290,16 @@ Global
 		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x64.Build.0 = Release|Any CPU
 		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x86.ActiveCfg = Release|Any CPU
 		{90ED113E-0CF5-4A0A-9AC7-346AA5643FAF}.Release|x86.Build.0 = Release|Any CPU
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Debug|x64.ActiveCfg = Debug|x64
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Debug|x64.Build.0 = Debug|x64
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Debug|x86.ActiveCfg = Debug|Win32
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Debug|x86.Build.0 = Debug|Win32
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Release|Any CPU.ActiveCfg = Release|Win32
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Release|x64.ActiveCfg = Release|x64
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Release|x64.Build.0 = Release|x64
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Release|x86.ActiveCfg = Release|Win32
+		{A2AC7E9B-CB32-4252-B321-CA8C454B2B3A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

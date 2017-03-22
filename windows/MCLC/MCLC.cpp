@@ -16,7 +16,7 @@ MCLC::MCLC() {
 
 int MCLC::AddNet(string model_definition, string weights, int gpu_id) {
   SetDevice(gpu_id);
-  auto new_net = new Net<float>(model_definition, Phase::TEST);//boost::make_shared<Net<float> >(model_definition, Phase::TEST);
+  auto new_net = new Net<float>(model_definition, Phase::TEST, false);//boost::make_shared<Net<float> >(model_definition, Phase::TEST);
   new_net->CopyTrainedLayersFrom(weights);
   nets_.push_back(new_net);
   predictors_.push_back(make_shared<boost::thread_specific_ptr<caffe::Net<float>>>());
@@ -27,7 +27,7 @@ int MCLC::AddNet(string model_definition, string weights, int gpu_id) {
 std::unordered_map<std::string, DataBlob> MCLC::Forward(int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
-      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
+      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST, false);
     predictor->ShareTrainedLayersWith(nets_[net_id]);
     (*predictors_[net_id]).reset(predictor.release());
   }
@@ -49,7 +49,7 @@ std::unordered_map<std::string, DataBlob> MCLC::Forward(std::vector<cv::Mat>&& i
 void MCLC::SetMemoryDataLayer(std::string layer_name, std::vector<cv::Mat>&& input_image, int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
-      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
+      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST, false);
     predictor->ShareTrainedLayersWith(nets_[net_id]);
     (*predictors_[net_id]).reset(predictor.release());
   }
@@ -63,7 +63,7 @@ void MCLC::SetMemoryDataLayer(std::string layer_name, std::vector<cv::Mat>&& inp
 void MCLC::SetBlobData(std::string blob_name, std::vector<int> blob_shape, float* data, int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
-      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
+      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST, false);
     predictor->ShareTrainedLayersWith(nets_[net_id]);
     (*predictors_[net_id]).reset(predictor.release());
   }
@@ -75,7 +75,7 @@ void MCLC::SetBlobData(std::string blob_name, std::vector<int> blob_shape, float
 DataBlob MCLC::GetBlobData(std::string blob_name, int net_id) {
   if (!(*predictors_[net_id]).get()) {
     auto predictor =
-      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST);
+      std::make_unique<caffe::Net<float>>(prototxts[net_id], Phase::TEST, false);
     predictor->ShareTrainedLayersWith(nets_[net_id]);
     (*predictors_[net_id]).reset(predictor.release());
   }

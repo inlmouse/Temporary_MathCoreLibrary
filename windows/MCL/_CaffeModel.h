@@ -69,6 +69,8 @@ public:
 	std::vector<FloatArray> ExtractFileOutputs(std::vector<std::string> &imageFile, const std::vector<std::string> &layerNames, int DeviceId);
 	FloatArray ExtractVectorOutputs(std::vector<float> vectorData, const std::string &layerName, int DeviceId);
 	std::vector<FloatArray> ExtractVectorOutputs(std::vector<float> vectorData, const std::vector<std::string> &layerNames, int DeviceId);
+	FloatArray ExtractByteOutputs(std::vector<std::string> &byteData, const std::string &layerName, int DeviceId);
+	std::vector<FloatArray> ExtractByteOutputs(std::vector<std::string> &byteData, const std::vector<std::string> &layerNames, int DeviceId);
 	//
 	FloatArray ExtractMatOutputs(std::vector<cv::Mat> &image, const std::string &layerName, int DeviceId);
 	std::vector<FloatArray> ExtractMatOutputs(std::vector<cv::Mat> &image, const std::vector<std::string> &layerNames, int DeviceId);
@@ -86,6 +88,7 @@ private:
 	void EvaluateBitmap(caffe::Net<float>* net, std::vector<std::string> imageData, int DeviceId);
 	void EvaluateVector(caffe::Net<float>* net, std::vector<float> vectorData, int DeviceId);
 	void EvaluateMat(caffe::Net<float>* net, std::vector<cv::Mat> image, int DeviceId);
+	void EvaluateByte(caffe::Net<float>* net, std::vector<std::string> byteData, int DeviceId);
 
 	//Image Helper functions:
 	static cv::Rect2i GetRoiRect(cv::Rect2i& OriRect);

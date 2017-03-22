@@ -105,7 +105,9 @@ int main(int argc, char** argv) {
   int count = 0;
   int data_size = 0;
   bool data_size_initialized = false;
-
+#ifndef _DEBUG
+#pragma omp parallel for  
+#endif
   for (int line_id = 0; line_id < lines.size(); ++line_id) {
     bool status;
     std::string enc = encode_type;
