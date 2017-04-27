@@ -539,7 +539,7 @@ namespace CaffeSharp {
 			}*/
 			// ?获取 bitmap 数据指针  
 			System::Drawing::Imaging::BitmapData ^data = dst->LockBits(
-				*(gcnew System::Drawing::Rectangle(0, 0, dst->Width, dst->Height)),
+				*(gcnew System::Drawing::Rectangle(0, 0, src.cols, src.rows)),
 				System::Drawing::Imaging::ImageLockMode::ReadWrite,
 				System::Drawing::Imaging::PixelFormat::Format24bppRgb
 			);

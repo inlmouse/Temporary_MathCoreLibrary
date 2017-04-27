@@ -11,9 +11,6 @@ using namespace FaceInception;
 
 int main(int argc, char* argv[])
 {
-	//CascadeCNN cascade("G:\\WIDER\\face_detection\\bak3\\cascade_12_memory_nobn1.prototxt", "G:\\WIDER\\face_detection\\bak3\\cascade12-_iter_490000.caffemodel",
-	//                   "G:\\WIDER\\face_detection\\bak3\\cascade_24_memory_full.prototxt", "G:\\WIDER\\face_detection\\bak3\\cascade24-_iter_145000.caffemodel",
-	//                   "G:\\WIDER\\face_detection\\bak3\\cascade_48_memory_full.prototxt", "G:\\WIDER\\face_detection\\bak3\\cascade48-_iter_225000.caffemodel");
 	string model_folder = "C:\\DLFramework\\Temporary_MathCoreLibrary\\windows\\MTCNN\\model\\";
 	CascadeCNN cascade(model_folder + "det1-memory.prototxt", model_folder + "det1.caffemodel",
 		model_folder + "det1-memory-stitch.prototxt", model_folder + "det1.caffemodel",
@@ -23,7 +20,7 @@ int main(int argc, char* argv[])
 		0);
 	//CaptureDemo(cascade);
 
-	double min_face_size = 12;
+	double min_face_size = 24;
 
 	//ScanList("H:\\lfw\\list.txt", cascade);
 	Mat image = imread("C:\\Users\\BALTHASAR\\Desktop\\2883_1.jpg");

@@ -433,13 +433,6 @@ message LayerParameter {
   optional PairwiseParameter pairwise_param = 221;
   optional LargeMarginInnerProductParameter largemargin_inner_product_param = 222;
   optional LocalConvolutionParameter local_conv_param = 223;
-  optional PermuteParameter permute_param = 224;
-  optional TruncationParameter truncation_param = 225;
-  optional NCAParameter nca_param = 226;
-  optional SmoothL1Parameter smoothl1_param = 227;
-  optional LabelSpecificRescaleParameter label_specific_rescale_param = 228;
-  optional InfimumLossParamter infimum_loss_param = 229;
-  optional BatchContrastiveParameter batch_contrastive_loss_param = 230;
 }
 
 // Message that stores parameters used to apply transformation
@@ -463,9 +456,6 @@ message TransformationParameter {
   optional bool force_color = 6 [default = false];
   // Force the decoded image to have 1 color channels.
   optional bool force_gray = 7 [default = false];
-  optional uint32 crop_h = 8 [default = 0];
-  optional uint32 crop_w = 9 [default = 0];
-  optional bool center_crop = 10 [default = false];
 }
 
 // Message that stores parameters shared by loss layers
@@ -1672,7 +1662,6 @@ message FlipParameter {
 
 message NormalizeParameter {
   optional string normalize_type = 1 [default = "L2"];
-  optional bool rescale = 2 [default = false];
 }
 
 message GeneralContrastiveParameter {
@@ -1687,17 +1676,6 @@ message GeneralContrastiveParameter {
   optional bool max_positive_only = 9 [default = false];
   optional bool positive_first = 10 [default = false];
   optional float positive_upper_bound = 11 [default = 1.0];
-  optional bool exp_negative_weight = 12 [default = false];
-  optional bool add_intra_mae = 13 [default = false];
-  optional float max_negative_margin = 14 [default = 1.2];
-}
-
-message BatchContrastiveParameter {
-  optional float positive_margin = 1 [default = 1.0];
-  optional float negative_margin = 2 [default = 1.0];
-  optional float positive_weight = 3 [default = 1.0];
-  optional float negative_weight = 4 [default = 1.0];
-  optional bool max_only = 5 [default = false];
 }
 
 message SoftContrastiveParameter {
@@ -1721,11 +1699,6 @@ message GeneralTripletParameter {
 
 message SoftTruncationParameter {
   optional float c = 1 [default = 2];
-}
-
-message TruncationParameter {
-  optional float lower_bound = 1 [default = 0];
-  optional float upper_bound = 2 [default = 5];
 }
 
 // Message that stores parameters used by ProposalLayer
@@ -1813,33 +1786,4 @@ message LocalConvolutionParameter {
   optional uint32 local_region_step = 22 [default = 1]; 	//step between adjacent input local regions
   optional uint32 local_region_step_w = 23 [default = 1]; 
   optional uint32 local_region_step_h = 24 [default = 1]; 	
-}
-
- message SmoothL1Parameter {
-  optional float turn_point = 1 [default = 1];
-}
-
-message PermuteParameter {
-  // The new orders of the axes of data. Notice it should be with
-  // in the same range as the input data, and it starts from 0.
-  // Do not provide repeated order.
-  repeated uint32 order = 1;
-}
-
-message NCAParameter {
-  optional bool min_negative_only = 1 [default = false];
-}
-
-
-
-message LabelSpecificRescaleParameter {
-  optional float positive_weight = 1 [default = 1.0];
-  optional float negative_weight = 2 [default = 1.0];
-  optional float positive_lower_bound = 3 [default = 0.0];
-  optional float negative_upper_bound = 4 [default = 0.0];
-  optional bool rescale_test = 5 [default = false];
-}
-
-message InfimumLossParamter {
-  optional float infimum = 1 [default = 0.25];
 }

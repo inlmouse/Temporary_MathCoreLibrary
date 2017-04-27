@@ -791,6 +791,15 @@
     <ClInclude Include="..\..\include\caffe\data_reader.hpp">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\caffe\custom_layers.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\caffe\layers\general_contrastive_loss_layer.hpp">
+      <Filter>include\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\caffe\layers\general_triplet_loss_layer.hpp">
+      <Filter>include\layers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\src\caffe\layers\contrastive_loss_layer.cu">

@@ -224,6 +224,7 @@
     <ClInclude Include="..\..\include\caffe\blob.hpp" />
     <ClInclude Include="..\..\include\caffe\caffe.hpp" />
     <ClInclude Include="..\..\include\caffe\common.hpp" />
+    <ClInclude Include="..\..\include\caffe\custom_layers.hpp" />
     <ClInclude Include="..\..\include\caffe\data_reader.hpp" />
     <ClInclude Include="..\..\include\caffe\data_transformer.hpp" />
     <ClInclude Include="..\..\include\caffe\filler.hpp" />
@@ -264,6 +265,8 @@
     <ClInclude Include="..\..\include\caffe\layers\filter_layer.hpp" />
     <ClInclude Include="..\..\include\caffe\layers\flatten_layer.hpp" />
     <ClInclude Include="..\..\include\caffe\layers\flip_layer.hpp" />
+    <ClInclude Include="..\..\include\caffe\layers\general_contrastive_loss_layer.hpp" />
+    <ClInclude Include="..\..\include\caffe\layers\general_triplet_loss_layer.hpp" />
     <ClInclude Include="..\..\include\caffe\layers\hdf5_data_layer.hpp" />
     <ClInclude Include="..\..\include\caffe\layers\hdf5_output_layer.hpp" />
     <ClInclude Include="..\..\include\caffe\layers\hinge_loss_layer.hpp" />

@@ -5,31 +5,64 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CaffeSharp;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using FastDetection;
+using Microsoft.ProjectOxford.Face;
+using Newtonsoft.Json;
 
 namespace csharp_test
 {
     class Program
     {
+        public const string SubscriptionKey = "6987fb28d0114ababb859dbbd1db314c";
         static void Main(string[] args)
         {
             //CaffeModel temp = new CaffeModel(@"C:\Users\BALTHASAR\Desktop\Feature.prototxt", @"C:\Users\BALTHASAR\Desktop\Feature.caffemodel");
-            //temp.GetUsefulPart(@"C:\Research\FaceRecognition\snapshot\special_usefulpart.caffemodel");
+            CaffeModel resnet101 = new CaffeModel(@"C:\Research\FaceRecognition\model\centerloss_deploy.prototxt", @"C:\Research\FaceRecognition\snapshot\centerloss_train_iter_50000.caffemodel");
+            resnet101.GetUsefulPart(@"C:\Research\FaceRecognition\snapshot\resnet34_usefulpart.caffemodel");
             //SortedList<int, float> results = lfw_fe(@"D:\Research\FaceRecognition\snapshot\GlasssixNet_train_iter_30000.caffemodel",
             //    "GlasssixNet.prototxt", "lfw_pairs.txt", @"D:\Alignment_lfw_Equalized\");
             //float best_th;
             //float ACC = lfw_acc(results, out best_th);
             //lfw_error(best_th, results);
             //Console.WriteLine(ACC);
-            XiaoKaXiu();
+            //getTestBenchamrkRes(resnet101, "Wrong");
+            //getTestBenchamrkRes(resnet101, "Correct");
         }
 
-        static void XiaoKaXiu()
+        static void getTestBenchamrkRes(CaffeModel model, string iscorrect)
+        {
+            string fatherDir = @"C:\Data\Alignment_TestBenchmark_Equalized\"+iscorrect;
+            int count = 0;
+            DirectoryInfo fatherInfo = new DirectoryInfo(fatherDir);
+            DirectoryInfo[] childrenInfos = fatherInfo.GetDirectories();
+            foreach (var childrenInfo in childrenInfos)
+            {
+                FileInfo[] files = childrenInfo.GetFiles("*.jpg", SearchOption.AllDirectories);
+                if (files.Length!=2)
+                {
+                    continue;
+                }
+                else
+                {
+                    Bitmap[] bits1 = new[] {new Bitmap(files[0].FullName)};
+                    Bitmap[] bits2 = new[] {new Bitmap(files[1].FullName)};
+                    float[] a = model.ExtractBitmapOutputs(bits1, "eltmax_eltwise_pool5", 0);
+                    float[] b = model.ExtractBitmapOutputs(bits2, "eltmax_eltwise_pool5", 0);
+                    float confidency = CaffeModel.CosineDistanceProb(a, b);
+                    Write(@"C:\Users\BALTHASAR\Documents\MATLAB\FaceTest\" + iscorrect + ".txt", confidency.ToString());
+                }
+                count++;
+                Console.WriteLine(count);
+            }
+        }
+
+        static async void XiaoKaXiu()
         {
             string model1 = @"IPBBox_iter_iter_60000.caffemodel";
             string net1 = @"IPBBox_deploy.prototxt";
@@ -38,7 +71,9 @@ namespace csharp_test
             var IPBBox = new CaffeModel(net1, model1, false);
             var IPTs = new CaffeModel(net2, model2, false);
             var ff = new FastFace(1.1f, 3, 48);
-            string fatherDir = @"C:\Data\Face_All";
+            string fatherDir = @"D:\CASIA\Cleaned_CASIA";
+            FaceServiceClient faceServiceClient = new FaceServiceClient(SubscriptionKey);
+            
             int count = 0;
             //Random rd=new Random(45985369);
             DirectoryInfo fatherInfo = new DirectoryInfo(fatherDir);
@@ -46,128 +81,82 @@ namespace csharp_test
             foreach (var childrenInfo in childrenInfos)
             {
                 //DirectoryInfo[] SubInfos = childrenInfo.GetDirectories();
+                
                 FileInfo[] files = childrenInfo.GetFiles("*.jpg", SearchOption.AllDirectories);
+
+                
                 int filecounter = 0;
                 foreach (var file in files)
                 {
                     filecounter++;
-                    //if (files.Length > 600)
-                    //{
-                    //    if (filecounter % 6 != 0)
-                    //    {
-                    //        continue;
-                    //    }
-                    //}
-                    //else if (files.Length <= 600 && files.Length > 500)
-                    //{
-                    //    if (filecounter % 5 != 0)
-                    //    {
-                    //        continue;
-                    //    }
-                    //}
-                    //else if (files.Length <= 500 && files.Length > 400)
-                    //{
-                    //    if (filecounter % 4 != 0)
-                    //    {
-                    //        continue;
-                    //    }
-                    //}
-                    //else if (files.Length <= 400 && files.Length > 300)
-                    //{
-                    //    if (filecounter % 3 != 0)
-                    //    {
-                    //        continue;
-                    //    }
-                    //}
-                    //else if (files.Length <= 300 && files.Length > 150)
-                    //{
-                    //    if (filecounter % 2 != 0)
-                    //    {
-                    //        continue;
-                    //    }
-                    //}
-                    //else
-                    //{
-
-                    //}
-                    //if (!File.Exists(@"C:\Data\Alignment_Registed_Equalized\" + count + "\\" + filecounter + ".jpg"))
-                    //{
                     try
                     {
+                        if (count <= -1)
+                        {
+                            continue;
+                        }
                         Bitmap bmp = new Bitmap(file.FullName);
-                        //FaceInfo info = ff.Facedetect_Frontal_Surveillance(bmp);
-                        //if (info.count != 1)
-                        //{
-                        //    //Write("lost.txt", file.FullName);
-                        //    continue;
-                        //}
+                        FaceInfo info = ff.Facedetect_Frontal_Surveillance(bmp);
+                        if (info.count != 1)
+                        {
+                            //Write("lost.txt", file.FullName);
+                            continue;
+                        }
 
-                        //**************
+                        ////**************
                         Bitmap[] bits = new Bitmap[1];
                         bits[0] = bmp;
-                        //Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-                        //int StartX = Convert.ToInt32(0 - bmp.Width * 0.2);
-                        //int StartY = Convert.ToInt32(0 - bmp.Height * 0.2);
-                        //int iWidth = Convert.ToInt32(bmp.Width * 1.4);
-                        //int iHeight = Convert.ToInt32(bmp.Height * 1.4);
-                        //bits[0] = KiCut(bmp, StartX, StartY, iWidth, iHeight);
+                        Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+                        int StartX = Convert.ToInt32(0 - bmp.Width * 0.2);
+                        int StartY = Convert.ToInt32(0 - bmp.Height * 0.2);
+                        int iWidth = Convert.ToInt32(bmp.Width * 1.4);
+                        int iHeight = Convert.ToInt32(bmp.Height * 1.4);
+                        bits[0] = KiCut(bmp, StartX, StartY, iWidth, iHeight);
 
                         float[][] feature = IPBBox.ExtractBitmapOutputs(bits, new[] { "fc2", "fc3" }, 0);
-                        float[] pts5 = ImageAligement(bits[0], feature, 0, IPTs,0);
-                        //if (Math.Abs(feature[1][0] * 90) >= 45)
-                        //{
-                        //    bits[0].Dispose();
-                        //    bmp.Dispose();
-                        //    continue;
-                        //}
-                        for (int j = 0; j < bits.Length; j++)
+                        if (Math.Abs(feature[1][0] * 90) >= 30)
                         {
-                            Image<Bgr, byte> temp = new Image<Bgr, byte>(bits[j]);
-                            Rectangle tempRec = new Rectangle()
-                            {
-                                X = (int)(temp.Width / 7.0f),
-                                Y = (int)(temp.Height / 7.0f),
-                                Width = (int)(temp.Width / 1.4f),
-                                Height = (int)(temp.Height / 1.4f)
-                            };
-                            temp.ROI = tempRec;
-                            temp = temp.Resize(128, 128, Inter.Cubic);
-                            bits[j] = temp.Bitmap;
-                            bits[j].SetResolution(96, 96);
+                            bits[0].Dispose();
+                            bmp.Dispose();
+                            continue;
                         }
-                        CaffeModel.Alignment(bits, pts5, bits);
-                        //Rectangle[] rects = new Rectangle[bits.Length];
-                        //Bitmap[] C = CaffeModel.Align_Step1(bits, rects, aa[0], aa[1]);
-                        //float[] bb = IPTs.ExtractBitmapOutputs(C, "fc2", 0);
-                        //Bitmap[] F = CaffeModel.Align_Step2(bits, C, bb, rects, 64, 64);
 
-                        if (!Directory.Exists(@"C:\Data\Alignment_Registed_Equalized\" + childrenInfo.Name))
+                        Rectangle[] rects = new Rectangle[bits.Length];
+                        Bitmap[] C = CaffeModel.Align_Step1(bits, rects, feature[0], feature[1]);
+                        float[] bb = IPTs.ExtractBitmapOutputs(C, "fc2", 0);
+                        Bitmap[] F = CaffeModel.Align_Step2(bits, C, bb, rects, 128, 128);
+
+                        if (!Directory.Exists(@"C:\Data\Alignment_CASIA\" + childrenInfo.Name))
                         {
-                            Directory.CreateDirectory(@"C:\Data\Alignment_Registed_Equalized\" + childrenInfo.Name);
+                            Directory.CreateDirectory(@"C:\Data\Alignment_CASIA\" + childrenInfo.Name);
                         }
-                        Image<Gray, byte> gray = new Image<Gray, byte>(bits[0]);
+                        Image<Gray, byte> gray = new Image<Gray, byte>(F[0]);
                         //Image<Gray, byte> temp = gray.Resize(32, 32, Inter.Linear);
                         //temp = temp.Resize(64, 64, Inter.Linear);
-                        //gray._EqualizeHist();
-                        gray.Save(@"C:\Data\Alignment_Registed_Equalized\" + childrenInfo.Name + "\\" + filecounter + ".jpg");
+                        gray._EqualizeHist();
+                        Image<Bgr, byte> colorimg = new Image<Bgr, byte>(new Image<Gray, byte>[] { gray, gray, gray });
+                        colorimg.Save(@"C:\Data\Alignment_CASIA\" + childrenInfo.Name + "\\" + filecounter + ".jpg");
                         //temp._EqualizeHist();
                         //temp.Save(@"C:\Data\Alignment_Registed_Equalized\" + childrenInfo.Name + "\\" + filecounter + "_per_blur.jpg");
                         //Console.WriteLine(@"C:\Data\Alignment_CASIA_Equalized\" + childrenInfo.Name + "\\" + filecounter + " complete!");
-                        //*****
-                        //gray.Dispose();
-                        //F[0].Dispose();
-                        //C[0].Dispose();
+                        ////*****
+                        colorimg.Dispose();
+                        gray.Dispose();
+                        F[0].Dispose();
+                        C[0].Dispose();
                         bits[0].Dispose();
                         bmp.Dispose();
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.ToString());
+                        
                         continue;
                         throw;
                     }
+                    
                     //}
-
+                    //Console.WriteLine(filecounter);
 
                 }
                 Console.WriteLine(count);
@@ -265,6 +254,15 @@ namespace csharp_test
                 float[][] a =
                 IPBbox.ExtractFileOutputs(new[] { @"D:\Research\FacialLandmarks\Data\5PTS\batch1_1.jpg" },
                     new[] { "fc2", "fc3" }, 0);
+            }
+        }
+
+        public static byte[] ToByteArray(Image image, ImageFormat format)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                image.Save(ms, format);
+                return ms.ToArray();
             }
         }
 
