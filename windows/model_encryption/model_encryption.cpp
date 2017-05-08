@@ -163,7 +163,7 @@ std::string PwdDecode(std::string str)
 
 void encode()
 {
-	std::ifstream fin("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\GlasssixLandmarks.prototxt");
+	std::ifstream fin("C:\\Research\\FaceRecognition\\model\\centerloss_flip_deploy.prototxt");
 	std::vector<std::string> oristr;
 	std::vector<std::string> ecdstr;
 	std::string s;
@@ -192,7 +192,7 @@ void encode()
 	}
 	/*std::string encode_strs = PwdEncode(strs);*/
 
-	std::ofstream ofs("D:\\Research\\FacialLandmarks\\Code\\IPBBox\\GlasssixLandmarks.dat");
+	std::ofstream ofs("C:\\Research\\FaceRecognition\\model\\centerloss_flip_deploy.dat");
 	for (size_t i = 0; i < oristr.size(); i++)
 	{
 		ofs << ecdstr[i] << std::endl;
@@ -276,7 +276,7 @@ int main()
 	//ofs.close();
 
 	encode();
-	decode();
+	//decode();
 
 
     return 0;

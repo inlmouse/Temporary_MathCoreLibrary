@@ -155,7 +155,7 @@ void SGDSolver<Dtype>::ApplyUpdate() {
         }
       }
     }
-    //if (weight_gradient_norm.size() > 20) LOG(INFO) << weight_gradient_norm;
+    if (weight_gradient_norm.size() > 20) LOG(INFO) << weight_gradient_norm;
   }
 #endif
   this->net_->Update();

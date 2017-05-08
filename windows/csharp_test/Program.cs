@@ -23,16 +23,16 @@ namespace csharp_test
         static void Main(string[] args)
         {
             //CaffeModel temp = new CaffeModel(@"C:\Users\BALTHASAR\Desktop\Feature.prototxt", @"C:\Users\BALTHASAR\Desktop\Feature.caffemodel");
-            CaffeModel resnet101 = new CaffeModel(@"C:\Research\FaceRecognition\model\centerloss_deploy.prototxt", @"C:\Research\FaceRecognition\snapshot\centerloss_train_iter_50000.caffemodel");
-            resnet101.GetUsefulPart(@"C:\Research\FaceRecognition\snapshot\resnet34_usefulpart.caffemodel");
+            CaffeModel resnet101 = new CaffeModel(@"C:\Research\FaceRecognition\model\centerloss_flip_deploy.prototxt", @"C:\Research\FaceRecognition\snapshot\centerloss34_fine_iter_20000.caffemodel", 0);
+            //resnet101.GetUsefulPart(@"C:\Research\FaceRecognition\snapshot\centerloss34_usefulpart.caffemodel");
             //SortedList<int, float> results = lfw_fe(@"D:\Research\FaceRecognition\snapshot\GlasssixNet_train_iter_30000.caffemodel",
             //    "GlasssixNet.prototxt", "lfw_pairs.txt", @"D:\Alignment_lfw_Equalized\");
             //float best_th;
             //float ACC = lfw_acc(results, out best_th);
             //lfw_error(best_th, results);
             //Console.WriteLine(ACC);
-            //getTestBenchamrkRes(resnet101, "Wrong");
-            //getTestBenchamrkRes(resnet101, "Correct");
+            getTestBenchamrkRes(resnet101, "Wrong");
+            getTestBenchamrkRes(resnet101, "Correct");
         }
 
         static void getTestBenchamrkRes(CaffeModel model, string iscorrect)
@@ -52,8 +52,8 @@ namespace csharp_test
                 {
                     Bitmap[] bits1 = new[] {new Bitmap(files[0].FullName)};
                     Bitmap[] bits2 = new[] {new Bitmap(files[1].FullName)};
-                    float[] a = model.ExtractBitmapOutputs(bits1, "eltmax_eltwise_pool5", 0);
-                    float[] b = model.ExtractBitmapOutputs(bits2, "eltmax_eltwise_pool5", 0);
+                    float[] a = model.ExtractBitmapOutputs(bits1, "ip1", 0);
+                    float[] b = model.ExtractBitmapOutputs(bits2, "ip1", 0);
                     float confidency = CaffeModel.CosineDistanceProb(a, b);
                     Write(@"C:\Users\BALTHASAR\Documents\MATLAB\FaceTest\" + iscorrect + ".txt", confidency.ToString());
                 }
