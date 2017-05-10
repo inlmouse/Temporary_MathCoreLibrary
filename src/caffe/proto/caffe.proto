@@ -440,6 +440,7 @@ message LayerParameter {
   optional LabelSpecificRescaleParameter label_specific_rescale_param = 228;
   optional InfimumLossParamter infimum_loss_param = 229;
   optional BatchContrastiveParameter batch_contrastive_loss_param = 230;
+  optional AngularInnerProductParameter angular_inner_product_param = 231;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1767,6 +1768,25 @@ message LargeMarginInnerProductParameter {
     QUADRUPLE = 3;
   }
   optional LargeMarginType type = 2 [default = SINGLE]; // m in the L-Softmax loss
+  optional FillerParameter weight_filler = 3; // The filler for the weight
+  optional int32 axis = 4 [default = 1];
+  // base, gamma, power and lambda_min are parameters for exponential lambda descent
+  optional float base = 5 [default = 1];
+  optional float gamma = 6 [default = 0];
+  optional float power = 7 [default = 1];
+  optional int32 iteration = 8 [default = 0];
+  optional float lambda_min = 9 [default = 0];
+}
+
+message AngularInnerProductParameter {
+  optional uint32 num_output = 1; // The number of outputs
+  enum AngularType {
+    SINGLE = 0;
+    DOUBLE = 1;
+    TRIPLE = 2;
+    QUADRUPLE = 3;
+  }
+  optional AngularType type = 2 [default = SINGLE]; // m in the A-Softmax loss
   optional FillerParameter weight_filler = 3; // The filler for the weight
   optional int32 axis = 4 [default = 1];
   // base, gamma, power and lambda_min are parameters for exponential lambda descent
