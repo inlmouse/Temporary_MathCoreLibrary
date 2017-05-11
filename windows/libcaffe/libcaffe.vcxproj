@@ -404,6 +404,7 @@
     <CudaCompile Include="..\..\src\caffe\util\math_functions.cu" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="..\..\src\caffe\layers\angular_inner_product_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\center_loss_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\flip_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\gram_layer.cu" />

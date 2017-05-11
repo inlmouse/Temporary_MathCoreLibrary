@@ -133,12 +133,11 @@ void AngularInnerProductLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bo
   for (int i = 0; i < N_; i++) {
     mutable_w_norm_data[i] = sqrt(caffe_cpu_dot(K_, weight + i * K_, weight + i * K_));
   }
+  // |w| = 1
   for (int i = 0; i < N_; i++)
   {
-	  for (int j = 0; j < K_; j++)
-	  {
-		  mutable_weight[i* K_ + j] = weight[i* K_ + j] / mutable_w_norm_data[i];
-	  }
+	  caffe_cpu_axpby(K_, (1 / mutable_w_norm_data[i] - 1), weight + i*K_, (Dtype)1., mutable_weight + i*K_);
+	  mutable_w_norm_data[i] = (Dtype)1.;
   }
   // cos_theta = x'w/(|x|*|w|)
   Blob<Dtype> xw_norm_product_;

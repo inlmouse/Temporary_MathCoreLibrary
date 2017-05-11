@@ -1054,5 +1054,8 @@
     <CudaCompile Include="..\..\src\caffe\layers\local_conv_layer.cu">
       <Filter>cu\layers</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\..\src\caffe\layers\angular_inner_product_layer.cu">
+      <Filter>cu\layers</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
